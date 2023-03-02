@@ -1,0 +1,19 @@
+[package]
+name = "remote-wheel-viewer"
+description = "Draws a steering wheel for use as an overlay, and allows its rotation to be controlled via OSC (e.g. via the Remote Wheel Sender)."
+authors = ["Barinzaya <barinzaya@gmail.com>"]
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+async-recursion = "1"
+eframe = { version = "0.21", default-features = false, features = ["glow"] }
+futures = "0.3"
+image = { version = "0.24", default-features = false, features = ["png"] }
+rfd = "0.11"
+rosc = "0.9"
+serde = { version = "1", features = ["derive", "rc"] }
+serde_with = "2"
+serde_yaml = "0.9"
+smol = "1"

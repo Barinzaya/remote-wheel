@@ -1,0 +1,19 @@
+# The background color of the windowS. This takes the form of a hex color code which is 3 (RGB),
+# 4 (RGBA), 6 (RRGGBB), or 8 (RRGGBBAA) characters. If using a format with no alpha, it will be
+# opaque.
+background: 00000000
+
+# The image to display for the steering wheel. May be default to use the default image, or the
+# filename of a PNG file from which to load the image.
+#
+# The size of the largest dimension of this image will determine the size of the viewer window.
+# For instance, a 1200x1000 image would result in a 1200x1200 window. The default image is 600x600.
+wheel: default
+
+osc:
+
+  # The UDP address/port on which the application should listen for OSC messages.
+  #
+  # The default address of 0.0.0.0 means that the application will listen for messages from any
+  # network that the PC is connected to. The default port of 19794 is arbitrary.
+  address: 0.0.0.0:19794

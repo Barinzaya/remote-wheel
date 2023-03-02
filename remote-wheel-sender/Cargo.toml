@@ -1,0 +1,26 @@
+[package]
+name = "remote-wheel-sender"
+description = "Monitors one or more joysticks and sends them to another software to allow for integration."
+authors = ["Barinzaya <barinzaya@gmail.com>"]
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+async-broadcast = "0.5"
+console = { version = "0.15", features = [], default-features = false }
+ctrlc = "3"
+futures = "0.3"
+linear-map = { version = "1", features = ["serde_impl"], optional = true }
+log = { version = "0.4", features = ["release_max_level_info"] }
+rosc = { version = "0.9", optional = true }
+sdl2 = { version = "0.35", features = ["bundled", "static-link"] }
+serde = { version = "1", features = ["derive", "rc"] }
+serde_yaml = "0.9"
+simplelog = "0.12"
+smol = "1"
+time = { version = "0.3", features = ["formatting"] }
+
+[features]
+default = ["osc"]
+osc = ["linear-map", "rosc"]

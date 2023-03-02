@@ -1,0 +1,20 @@
+# Settings for where OSC messages should be sent to
+osc:
+  # The address and UDP port to which OSC messages should be sent.
+  #
+  # This application currently only supports sending to a single address (for now).
+  address: 127.0.0.1:19794
+
+# A list of inputs the Sender should respond to.
+#
+# The default configuration only lists a single input, as the Viewer application currently only
+# accepts a single input, but the Sender application supports any number of inputs.
+inputs:
+
+- controller: Controller Name Here # The name of the controller from which to read the input.
+  axis: x # The name of the axis whose value to read and send. Possible values: x y z rx ry rz slider dial
+  range: [-450, 450] # The range of values which should be sent in the messages defined below.
+
+  # OSC messages to send in response to this input. If using the Viewer application, this should not be changed.
+  osc:
+    /wheel/rotation: [input]
