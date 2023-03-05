@@ -1,11 +1,13 @@
 use std::sync::{Arc};
 
-use crate::config::InputConfig;
+use crate::config::{InputAxisConfig, InputButtonConfig};
 
 #[cfg(feature = "osc")]
 pub mod osc;
 
 #[derive(Clone, Debug)]
 pub enum OutputEvent {
-	Update(Arc<InputConfig>, f64),
+	UpdateAxis(Arc<InputAxisConfig>, f64),
+	UpdateButton(Arc<InputButtonConfig>, bool),
+    Flush,
 }

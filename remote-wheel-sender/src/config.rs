@@ -4,7 +4,7 @@ use std::io::ErrorKind;
 use std::path::{Path};
 use std::sync::{Arc};
 
-use anyhow::{Context as _, Result as AnyResult};
+use anyhow::{Context as _, Result as AnyResult, ensure};
 use serde::{Deserialize};
 
 #[derive(Debug, Deserialize)]
@@ -13,11 +13,18 @@ pub struct AppConfig {
     pub osc: crate::output::osc::OscConfig,
 
 	#[serde(default)]
-	pub inputs: Vec<Arc<InputConfig>>,
+	pub inputs: Vec<InputConfig>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(untagged)]
+pub enum InputConfig {
+	Axis(Arc<InputAxisConfig>),
+	Button(Arc<InputButtonConfig>),
 }
 
 #[derive(Debug, Deserialize)]
-pub struct InputConfig {
+pub struct InputAxisConfig {
 	pub controller: String,
 	pub axis: Axis,
 
@@ -26,7 +33,18 @@ pub struct InputConfig {
 
 	#[cfg(feature = "osc")]
 	#[serde(default)]
-	pub osc: Option<crate::output::osc::OscInputConfig>,
+	pub osc: crate::output::osc::OscInputAxisConfig,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct InputButtonConfig {
+	pub controller: String,
+	pub button: u32,
+
+	#[cfg(feature = "osc")]
+	#[serde(default)]
+	pub osc: crate::output::osc::OscInputButtonConfig,
 }
 
 fn default_range() -> [f64; 2] {
@@ -70,13 +88,47 @@ impl AppConfig {
 		#[cfg(feature = "osc")]
 		{
 			self.osc.validate()?;
-
-			for input in &self.inputs {
-				if let Some(ref t) = input.osc {
-					t.validate()?;
-				}
-			}
 		}
+
+		for input in &self.inputs {
+			input.validate()?;
+		}
+
+		Ok(())
+	}
+}
+
+impl InputConfig {
+	pub fn controller(&self) -> &str {
+		match *self {
+			InputConfig::Axis(ref axis) => &axis.controller,
+			InputConfig::Button(ref button) => &button.controller,
+		}
+	}
+
+	pub fn validate(&self) -> AnyResult<()> {
+		match *self {
+			InputConfig::Axis(ref axis) => axis.validate(),
+			InputConfig::Button(ref button) => button.validate(),
+		}
+	}
+}
+
+impl InputAxisConfig {
+	pub fn validate(&self) -> AnyResult<()> {
+		#[cfg(feature = "osc")]
+		self.osc.validate()?;
+
+		Ok(())
+	}
+}
+
+impl InputButtonConfig {
+	pub fn validate(&self) -> AnyResult<()> {
+		ensure!(self.button > 0, "Input button must be a number starting at 1.");
+
+		#[cfg(feature = "osc")]
+		self.osc.validate()?;
 
 		Ok(())
 	}

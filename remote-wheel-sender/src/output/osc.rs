@@ -1,4 +1,4 @@
-use std::net::{SocketAddr, SocketAddrV4, Ipv4Addr, Ipv6Addr, SocketAddrV6};
+use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 
 use anyhow::{Context as _, Result as AnyResult};
 use async_broadcast::{Receiver as BroadcastRx, RecvError as BroadcastRxErr};
@@ -8,22 +8,50 @@ use smol::net::{UdpSocket};
 
 use super::{OutputEvent};
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct OscConfig {
 	address: SocketAddr,
+
+	#[serde(default)]
+	pre_bundle: OscMessages,
+
+	#[serde(default)]
+	post_bundle: OscMessages,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct OscInputAxisConfig {
+	#[serde(flatten)]
+	on_change: OscMessages,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct OscInputButtonConfig {
+	#[serde(default)]
+	on_press: OscMessages,
+
+	#[serde(default)]
+	on_release: OscMessages,
+
+	#[serde(flatten)]
+	on_change: OscMessages,
+}
+
+#[derive(Clone, Debug, Default, Deserialize)]
 #[repr(transparent)]
 #[serde(transparent)]
-pub struct OscInputConfig {
-	paths: LinearMap<String, Vec<OscParameter>>,
-}
+pub struct OscMessages(LinearMap<String, Vec<OscParameter>>);
 
 impl Default for OscConfig {
 	fn default() -> Self {
 		OscConfig {
 			address: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 19794)),
+
+			pre_bundle: OscMessages::default(),
+			post_bundle: OscMessages::default(),
 		}
 	}
 }
@@ -37,8 +65,8 @@ enum OscParameter {
 	Float(f32),
 	Double(f64),
 
-	String(String),
 	Bool(bool),
+	String(String),
 
 	Nil,
 	Inf,
@@ -52,14 +80,20 @@ impl OscConfig {
 	}
 }
 
-impl OscInputConfig {
+impl OscInputAxisConfig {
+	pub fn validate(&self) -> AnyResult<()> {
+		Ok(())
+	}
+}
+
+impl OscInputButtonConfig {
 	pub fn validate(&self) -> AnyResult<()> {
 		Ok(())
 	}
 }
 
 impl OscParameter {
-	fn to_rosc(&self, input: f32) -> rosc::OscType {
+	fn to_rosc(&self, input: &rosc::OscType) -> rosc::OscType {
 		match *self {
 			OscParameter::Int(i) => rosc::OscType::Int(i),
 			OscParameter::Long(i) => rosc::OscType::Long(i),
@@ -73,8 +107,19 @@ impl OscParameter {
 			OscParameter::Nil => rosc::OscType::Nil,
 			OscParameter::Inf => rosc::OscType::Inf,
 
-			OscParameter::Input => rosc::OscType::Float(input),
+			OscParameter::Input => input.clone(),
 		}
+	}
+}
+
+impl OscMessages {
+	fn to_messages<'m>(&'m self, input: &'m rosc::OscType) -> impl 'm + Iterator<Item = rosc::OscMessage> + DoubleEndedIterator + ExactSizeIterator {
+		self.0.iter().map(|(address, params)| rosc::OscMessage {
+			addr: address.clone(),
+			args: params.iter()
+				.map(|p| p.to_rosc(input))
+				.collect(),
+		})
 	}
 }
 
@@ -93,31 +138,52 @@ pub async fn run(config: OscConfig, mut recv: BroadcastRx<OutputEvent>) -> AnyRe
 
 	let mut packet = rosc::OscPacket::Bundle(rosc::OscBundle {
 		timetag: (0, 0).into(),
-		content: Vec::new(),
+		content: config.pre_bundle.to_messages(&rosc::OscType::Nil)
+			.map(rosc::OscPacket::Message)
+			.collect(),
 	});
+
+	let num_pre_packets = config.pre_bundle.0.len();
+	let mut post_packets = config.post_bundle.to_messages(&rosc::OscType::Nil)
+		.map(rosc::OscPacket::Message)
+		.collect::<Vec<_>>();
 
 	log::info!("OSC task started.");
 
 	loop {
 		match recv.recv().await {
-			Ok(OutputEvent::Update(input, value)) => {
-				if let Some(ref config) = input.osc {
-					let rosc::OscPacket::Bundle(ref mut bundle) = packet else { unreachable!() };
+			Ok(OutputEvent::UpdateAxis(input, value)) => {
+				let rosc::OscPacket::Bundle(ref mut bundle) = packet else { unreachable!() };
 
-					bundle.content.clear();
-					bundle.content.extend(config.paths.iter()
-						.map(|(path, params)| rosc::OscMessage {
-							addr: path.clone(),
-							args: params.iter()
-								.map(|p| p.to_rosc(value as f32))
-								.collect(),
-						})
-						.map(rosc::OscPacket::Message));
+				bundle.content.extend(input.osc.on_change.to_messages(&rosc::OscType::Float(value as f32))
+					.map(rosc::OscPacket::Message));
+			},
+
+			Ok(OutputEvent::UpdateButton(input, pressed)) => {
+				let rosc::OscPacket::Bundle(ref mut bundle) = packet else { unreachable!() };
+
+				let specific_messages = if pressed { &input.osc.on_press } else { &input.osc.on_release };
+				bundle.content.extend(specific_messages.to_messages(&rosc::OscType::Bool(pressed))
+					.map(rosc::OscPacket::Message));
+
+				bundle.content.extend(input.osc.on_change.to_messages(&rosc::OscType::Bool(pressed))
+					.map(rosc::OscPacket::Message));
+			},
+
+			Ok(OutputEvent::Flush) => {
+				let rosc::OscPacket::Bundle(ref mut bundle) = packet else { unreachable!() };
+				if bundle.content.len() > num_pre_packets {
+					let post_start = bundle.content.len();
+					bundle.content.append(&mut post_packets);
 
 					let bytes = rosc::encoder::encode(&packet)
 						.context("Failed to encode OSC packet")?;
 					socket.send(&bytes).await
-						.context("Failed to send OSc packet")?;
+						.context("Failed to send OSC packet")?;
+
+					let rosc::OscPacket::Bundle(ref mut bundle) = packet else { unreachable!() };
+					post_packets.extend(bundle.content.drain(post_start..));
+					bundle.content.truncate(num_pre_packets);
 				}
 			},
 
