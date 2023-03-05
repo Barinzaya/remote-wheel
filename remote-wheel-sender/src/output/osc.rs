@@ -9,7 +9,7 @@ use smol::net::{UdpSocket};
 use super::{OutputEvent};
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub struct OscConfig {
 	address: SocketAddr,
 
@@ -21,23 +21,22 @@ pub struct OscConfig {
 }
 
 #[derive(Debug, Default, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub struct OscInputAxisConfig {
-	#[serde(flatten)]
 	on_change: OscMessages,
 }
 
 #[derive(Debug, Default, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub struct OscInputButtonConfig {
+	#[serde(default)]
+	on_change: OscMessages,
+
 	#[serde(default)]
 	on_press: OscMessages,
 
 	#[serde(default)]
 	on_release: OscMessages,
-
-	#[serde(flatten)]
-	on_change: OscMessages,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]

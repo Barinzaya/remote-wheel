@@ -8,6 +8,7 @@ use anyhow::{Context as _, Result as AnyResult, ensure};
 use serde::{Deserialize};
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub struct AppConfig {
 	#[cfg(feature = "osc")]
     pub osc: crate::output::osc::OscConfig,
@@ -17,13 +18,14 @@ pub struct AppConfig {
 }
 
 #[derive(Clone, Debug, Deserialize)]
-#[serde(untagged)]
+#[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub enum InputConfig {
 	Axis(Arc<InputAxisConfig>),
 	Button(Arc<InputButtonConfig>),
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub struct InputAxisConfig {
 	pub controller: String,
 	pub axis: Axis,
@@ -37,7 +39,7 @@ pub struct InputAxisConfig {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub struct InputButtonConfig {
 	pub controller: String,
 	pub button: u32,
