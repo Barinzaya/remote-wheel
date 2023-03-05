@@ -151,7 +151,7 @@ enum AppEvent {
 }
 
 fn async_thread(config: AppConfig, egui: eframe::egui::Context, event_tx: Sender<AppEvent>, run_rx: Receiver<()>) {
-    let listen_fut = listen_osc(config.osc.address, egui.clone(), event_tx.clone());
+    let listen_fut = listen_osc(config.osc.address, egui, event_tx);
 
     smol::block_on(async move {
         futures::select_biased!{
