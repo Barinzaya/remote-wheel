@@ -8,13 +8,53 @@ osc:
 # A list of inputs the Sender should respond to.
 #
 # The default configuration only lists a single input, as the Viewer application currently only
-# accepts a single input, but the Sender application supports any number of inputs.
+# accepts a single input, but the Sender application supports any number of inputs. Additional
+# inputs can be configured by adding a new entry (starting with an unindented dash).
 inputs:
 
 - controller: Controller Name Here # The name of the controller from which to read the input.
   axis: x # The name of the axis whose value to read and send. Possible values: x y z rx ry rz slider dial
   range: [-450, 450] # The range of values which should be sent in the messages defined below.
 
-  # OSC messages to send in response to this input. If using the Viewer application, this should not be changed.
+  # OSC message(s) to send in response to this input. The OSC address of the message will be the key
+  # (prior to the colon). Any number of parameters may be listed, either by listing them inside of
+  # square brackets (as shown below) or listing them, one per line, preceded with dashes. If this
+  # input is to be sent to the Viewer application, this does not need to be changed.
+  #
+  # Parameters may be specified as follows:
+  #
+  # - !int 42 (a constant 32-bit integer)
+  # - !long 42 (a constant 64-bit integer)
+  # - !float 4.2 (a constant 32-bit floating-point value)
+  # - !double 4.2 (a constant 64-bit floating-point value)
+  # - !bool true (a boolean True value)
+  # - !bool false (a boolean True value)
+  # - !string Hello (text)
+  # - nil (the absence of a value)
+  # - inf (a representation of infinity)
+  # - input (the value of the axis, as a 32-bit floating-point value)
+  #
+  # Multiple messages may be listed here, in which case they will all be sent in the order they are listed.
   osc:
     /wheel/rotation: [input]
+
+# The below is not (currently) used by the Viewer application, but is provided as an example of how
+# to configure a button input.
+- controller: Controller Name Here # The name of the controller from which to read the input.
+  button: 1 # The button number whose state to read and send. Numbered starting with 1.
+
+  # OSC message(s) to send in response to this input. Almost identical in structure to that of an
+  # axis, except for two differences:
+  #
+  # 1. Parameters set to the input will be sent a boolean value (true when  pressed, false when
+  #    released).
+  # 2. on-press and on-release keys may be used to specify keys that will only be sent when the
+  #    button is pressed or released (respectively).
+  osc:
+    /buttons/1/state: [input]
+
+    on-press:
+      /buttons/1/pressed: []
+
+    on-release:
+      /buttons/1/released: []
