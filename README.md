@@ -28,7 +28,7 @@ You may also change the axis on the controller that is used with the `axis` fiel
 
 The address to which the Sender sends its data may also be changed. By default, it is configured to work with the default configuration of the Viewer application running on the same PC, but if the Viewer will be running on a separate PC, then the IP address can be changed to the IP of the computer that should receive it (or `255.255.255.255` if you're lazy and don't mind it being needlessly sent to every computer on the network).
 
-While the default configuration of the Sender is focused on use with the Viewer application, it is far more flexible. It can be configured to watch any number of controller/axis combinations (buttons coming in a future version), and the OSC address and arguments of the messages that are sent are customizable. All OSC messages are sent to a single IP/port.
+While the default configuration of the Sender is focused on use with the Viewer application, it is far more flexible. It can be configured to watch any number of controller/axis and controller/button combinations, and the OSC address and arguments of the messages that are sent are customizable. All OSC messages are sent to a single IP/port.
 
 This readme will be updated in the future with further details.
 
@@ -56,7 +56,7 @@ Known issues:
 
 Features currently on the to-do list:
 
-- [ ] Sending of OSC messages for buttons
+- [x] Sending of OSC messages for buttons
 - [ ] Visible/animated paddle shifters
 - [ ] Animated hands
 - [ ] Animated arms
