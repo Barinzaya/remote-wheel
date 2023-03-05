@@ -5,6 +5,9 @@ osc:
   # This application currently only supports sending to a single address (for now).
   address: 127.0.0.1:19794
 
+  # OSC messages that should be sent at the beginning or end of any batch of input messages can be
+  # configured by listing the messages under the pre-bundle or post-bundle keys in this section.
+
 # A list of inputs the Sender should respond to.
 #
 # The default configuration only lists a single input, as the Viewer application currently only
@@ -49,7 +52,8 @@ inputs:
   # 1. Parameters set to the input will be sent a boolean value (true when  pressed, false when
   #    released).
   # 2. on-press and on-release keys may be used to specify keys that will only be sent when the
-  #    button is pressed or released (respectively).
+  #    button is pressed or released (respectively). If both on-press/on-release and on-change
+  #    messages are specified, on-press/on-release messages will be sent first.
   osc:
     /buttons/1/state: [input]
 
