@@ -33,9 +33,9 @@ pub async fn run(
 ) -> AnyResult<()> {
     log::info!("VMC task starting...");
 
-    let socket = UdpSocket::bind(config.receive_addr)
+    let socket = UdpSocket::bind(config.input.address)
         .await
-        .with_context(|| format!("Failed to bind to UDP socket {}", config.receive_addr))?;
+        .with_context(|| format!("Failed to bind to UDP socket {}", config.input.address))?;
     let mut recv_buffer = vec![0u8; 16384];
 
     let mut avatar = AvatarState::new();
@@ -56,8 +56,8 @@ pub async fn run(
 
     log::info!(
         "VMC task started. Listening on {}, sending to {}.",
-        config.receive_addr,
-        config.send_addr
+        config.input.address,
+        config.output.address
     );
 
     loop {
@@ -94,7 +94,7 @@ pub async fn run(
                     .context("Failed to encode VMC bundle")?;
                 let data = &recv_buffer[..data_len];
 
-                socket.send_to(data, config.send_addr).await
+                socket.send_to(data, config.output.address).await
                     .context("failed to send VMC bundle")?;
 
                 let processing_time = recv_time.elapsed();
@@ -126,12 +126,12 @@ pub async fn run(
             msg = recv.recv().fuse() => match msg {
                 Ok(OutputEvent::UpdateAxis(id, value)) => {
                     if let Some(axis) = mappings.axis.get(&id) {
-                        for (name, range) in axis.output.vmc.on_change.blendshape.iter() {
+                        for (name, range) in axis.output.vmc.on_update.blendshape.iter() {
                             let mapped_value = range[0] + value as f32 * (range[1] - range[0]);
-                            tracking.update_blendshape(name, mapped_value);
+                            tracking.update_blendshape(name, mapped_value / 100.0);
                         }
 
-                        for (name, range) in axis.output.vmc.on_change.device.iter() {
+                        for (name, range) in axis.output.vmc.on_update.device.iter() {
                             if let Some(device) = devices.get_mut(name) {
                                 let mapped_value = range[0] + value as f32 * (range[1] - range[0]);
                                 device.set_value(mapped_value);
@@ -142,12 +142,12 @@ pub async fn run(
 
                 Ok(OutputEvent::UpdateButton(id, pressed)) => {
                     if let Some(button) = mappings.button.get(&id) {
-                        for (name, range) in button.output.vmc.on_change.blendshape.iter() {
+                        for (name, range) in button.output.vmc.on_update.blendshape.iter() {
                             let mapped_value = if pressed { range[1] } else { range[0] };
-                            tracking.update_blendshape(name, mapped_value);
+                            tracking.update_blendshape(name, mapped_value / 100.0);
                         }
 
-                        for (name, range) in button.output.vmc.on_change.device.iter() {
+                        for (name, range) in button.output.vmc.on_update.device.iter() {
                             if let Some(device) = devices.get_mut(name) {
                                 let mapped_value = if pressed { range[1] } else { range[0] };
                                 device.set_value(mapped_value);

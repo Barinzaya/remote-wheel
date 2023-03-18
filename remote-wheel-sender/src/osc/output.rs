@@ -45,7 +45,7 @@ pub(super) async fn run(
                         mapping
                             .output
                             .osc
-                            .on_change
+                            .on_update
                             .to_messages(&(value as f32))
                             .map(rosc::OscPacket::Message),
                     );
@@ -72,7 +72,7 @@ pub(super) async fn run(
                         mapping
                             .output
                             .osc
-                            .on_change
+                            .on_update
                             .to_messages(&pressed)
                             .map(rosc::OscPacket::Message),
                     );
