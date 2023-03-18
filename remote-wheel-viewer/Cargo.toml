@@ -10,6 +10,7 @@ anyhow = "1"
 eframe = { version = "0.21", default-features = false, features = ["glow"] }
 futures = "0.3"
 image = { version = "0.24", default-features = false, features = ["png"] }
+rfd = "0.11"
 rosc = { git = "https://github.com/barinzaya/rosc", branch = "encoder-improvements" }
 serde = { version = "1", features = ["derive", "rc"] }
 serde_with = "2"
