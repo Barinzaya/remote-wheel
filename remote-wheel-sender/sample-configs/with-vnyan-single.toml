@@ -1,0 +1,60 @@
+[vmc]
+	enabled = true
+	input.address = "127.0.0.1:3332"
+	output.address = "127.0.0.1:3333"
+	report-interval = 60
+
+[vmc.device.wheel]
+	type = "wheel"
+	position = [0, 0.95, 0.3]
+	rotation = [0, 0, 0]
+	radius = 0.13
+
+
+[[axis.wheel.input]]
+	controller.name = "Thrustmaster T300RS Racing wheel"
+	controller.axis = "x"
+
+[axis.wheel.output.vmc.on-update]
+	blendshape.wheel = [0, 100]
+	device.wheel = [-450, 450]
+
+
+[[axis.gas.input]]
+	controller.name = "Thrustmaster T300RS Racing wheel"
+	controller.axis = "z"
+
+[axis.gas.output.vmc.on-update]
+	blendshape.gas = [0, 100]
+
+
+[[axis.brake.input]]
+	controller.name = "Thrustmaster T300RS Racing wheel"
+	controller.axis = "y"
+
+[axis.brake.output.vmc.on-update]
+	blendshape.brake = [0, 100]
+
+
+[[axis.clutch.input]]
+	controller.name = "Thrustmaster T300RS Racing wheel"
+	controller.axis = "rx"
+
+[axis.clutch.output.vmc.on-update]
+	blendshape.clutch = [0, 100]
+
+
+[[button.paddleUp.input]]
+	controller.name = "Thrustmaster T300RS Racing wheel"
+	controller.button = 2
+
+[button.paddleUp.output.vmc.on-update]
+	blendshape.paddleUp = [0, 100]
+
+
+[[button.paddleDown.input]]
+	controller.name = "Thrustmaster T300RS Racing wheel"
+	controller.button = 1
+
+[button.paddleDown.output.vmc.on-update]
+	blendshape.paddleDown = [0, 100]

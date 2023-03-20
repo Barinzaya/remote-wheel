@@ -1,0 +1,50 @@
+[osc]
+	enabled = true
+	input.address = "0.0.0.0:0"
+	output.address = "STREAM_PC_IP_HERE:19794"
+
+[[axis.wheel.input]]
+	controller.name = "Thrustmaster T300RS Racing wheel"
+	controller.axis = "x"
+
+[axis.wheel.output.osc.on-update]
+	"/wheel/rotation" = [ {input=[-450,450]} ]
+
+
+[[axis.gas.input]]
+	controller.name = "Thrustmaster T300RS Racing wheel"
+	controller.axis = "z"
+
+[axis.gas.output.osc.on-update]
+	"/gas/rotation" = [ {input=[0,1]} ]
+
+
+[[axis.brake.input]]
+	controller.name = "Thrustmaster T300RS Racing wheel"
+	controller.axis = "y"
+
+[axis.brake.output.osc.on-update]
+	"/brake/rotation" = [ {input=[0,1]} ]
+
+[[axis.clutch.input]]
+	controller.name = "Thrustmaster T300RS Racing wheel"
+	controller.axis = "rx"
+
+[axis.clutch.output.osc.on-update]
+	"/clutch/rotation" = [ {input=[0,1]} ]
+
+
+[[button.paddleUp.input]]
+	controller.name = "Thrustmaster T300RS Racing wheel"
+	controller.button = 2
+
+[button.paddleUp.output.osc.on-update]
+	"/paddleUp/on" = [ {input=[]} ]
+
+
+[[button.paddleDown.input]]
+	controller.name = "Thrustmaster T300RS Racing wheel"
+	controller.button = 1
+
+[button.paddleDown.output.osc.on-update]
+	"/paddleDown/on" = [ {input=[]} ]

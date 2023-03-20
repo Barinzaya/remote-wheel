@@ -1,0 +1,63 @@
+[osc]
+	enabled = true
+	input.address = "0.0.0.0:19794"
+	output.address = "127.0.0.1:19795"
+
+[vmc]
+	enabled = true
+	input.address = "127.0.0.1:3332"
+	output.address = "127.0.0.1:3333"
+	report-interval = 60
+
+[vmc.device.wheel]
+	type = "wheel"
+	position = [0, 0.95, 0.3]
+	rotation = [0, 0, 0]
+	radius = 0.13
+
+
+[[axis.wheel.input]]
+	osc.address = "/wheel/rotation"
+	osc.range = [-450, 450]
+
+[axis.wheel.output.vmc.on-update]
+	blendshape.wheel = [0, 100]
+	device.wheel = [-450, 450]
+
+
+[[axis.gas.input]]
+	osc.address = "/gas/rotation"
+	osc.range = [0, 1]
+
+[axis.gas.output.vmc.on-update]
+	blendshape.gas = [0, 100]
+
+
+[[axis.brake.input]]
+	osc.address = "/brake/rotation"
+	osc.range = [0, 1]
+
+[axis.brake.output.vmc.on-update]
+	blendshape.brake = [0, 100]
+
+
+[[axis.clutch.input]]
+	osc.address = "/clutch/rotation"
+	osc.range = [0, 1]
+
+[axis.clutch.output.vmc.on-update]
+	blendshape.clutch = [0, 100]
+
+
+[[button.paddleUp.input]]
+	osc.address = "/paddleUp/on"
+
+[button.paddleUp.output.vmc.on-update]
+	blendshape.paddleUp = [0, 100]
+
+
+[[button.paddleDown.input]]
+	osc.address = "/paddleDown/on"
+
+[button.paddleDown.output.vmc.on-update]
+	blendshape.paddleDown = [0, 100]
