@@ -73,6 +73,10 @@ rotation = [0, 0, 0]
 # The radius of the wheel. This affects how far away from the center point the hands will be placed.
 radius = 0.16
 
+# The serial number of a tracker to add to the VMC data with the wheel's position.
+# This can be used to track a prop to this device's location.
+tracker = "Wheel"
+
 # Configuration of source for an axis input named "wheel".
 #
 # Note that in contrast to the other sections, this section must have double brackets!
