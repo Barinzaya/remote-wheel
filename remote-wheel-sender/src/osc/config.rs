@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use std::net::{Ipv4Addr, SocketAddr};
 
 use linear_map::LinearMap;
-use serde::{Deserialize, Deserializer, de::Error as _};
+use serde::{de::Error as _, Deserialize, Deserializer};
 
 #[derive(Clone, Debug, Default, Deserialize)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
@@ -143,8 +143,12 @@ impl<'de, I: Deserialize<'de>> serde::de::Visitor<'de> for OscParameterVisitor<'
     }
 
     fn visit_map<A: serde::de::MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
-        let key: Cow<'de, str> = map.next_key()?
-            .ok_or_else(|| A::Error::invalid_length(0, &"a single entry with a key of bool/int/long/float/double/string/input"))?;
+        let key: Cow<'de, str> = map.next_key()?.ok_or_else(|| {
+            A::Error::invalid_length(
+                0,
+                &"a single entry with a key of bool/int/long/float/double/string/input",
+            )
+        })?;
 
         let value = match key.as_ref() {
             "bool" => OscParameter::Bool(map.next_value()?),
@@ -155,11 +159,19 @@ impl<'de, I: Deserialize<'de>> serde::de::Visitor<'de> for OscParameterVisitor<'
             "string" => OscParameter::String(map.next_value()?),
             "input" => OscParameter::Input(map.next_value()?),
 
-            _ => return Err(A::Error::unknown_field(key.as_ref(), &["bool", "int", "long", "float", "double", "string", "input"])),
+            _ => {
+                return Err(A::Error::unknown_field(
+                    key.as_ref(),
+                    &["bool", "int", "long", "float", "double", "string", "input"],
+                ))
+            }
         };
 
         if map.next_key::<serde::de::IgnoredAny>()?.is_some() {
-            return Err(A::Error::invalid_length(2, &"a single entry with a key of bool/int/long/float/double/string/input"));
+            return Err(A::Error::invalid_length(
+                2,
+                &"a single entry with a key of bool/int/long/float/double/string/input",
+            ));
         }
 
         Ok(value)
@@ -195,7 +207,10 @@ impl<'de, I: Deserialize<'de>> serde::de::Visitor<'de> for OscParameterVisitor<'
         } else if let Ok(v) = i64::try_from(v) {
             Ok(OscParameter::Long(v))
         } else {
-            Err(E::invalid_value(serde::de::Unexpected::Unsigned(v), &"integer out of range"))
+            Err(E::invalid_value(
+                serde::de::Unexpected::Unsigned(v),
+                &"integer out of range",
+            ))
         }
     }
 }
