@@ -2,7 +2,7 @@
 name = "remote-wheel-viewer"
 description = "Draws a steering wheel for use as an overlay, and allows its rotation to be controlled via OSC (e.g. via the Remote Wheel Sender)."
 authors = ["Barinzaya <barinzaya@gmail.com>"]
-version = "0.1.0"
+version = "0.3.0-a2"
 edition = "2021"
 
 [dependencies]

@@ -1881,7 +1881,7 @@ dependencies = [
 
 [[package]]
 name = "remote-wheel-sender"
-version = "0.3.0-a1"
+version = "0.3.0-a2"
 dependencies = [
  "anyhow",
  "async-broadcast",
@@ -1906,7 +1906,7 @@ dependencies = [
 
 [[package]]
 name = "remote-wheel-viewer"
-version = "0.1.0"
+version = "0.3.0-a2"
 dependencies = [
  "anyhow",
  "eframe",
