@@ -32,7 +32,10 @@ pub(super) struct OutputConfig {
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
 pub struct AxisInputConfig {
     pub(super) address: String,
+
+    #[serde(default = "AxisInputConfig::default_range")]
     pub(super) range: [f64; 2],
+    // TODO: Fix default range
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
@@ -275,6 +278,12 @@ impl Default for OutputConfig {
             pre_bundle: BundleConfig::default(),
             post_bundle: BundleConfig::default(),
         }
+    }
+}
+
+impl AxisInputConfig {
+    fn default_range() -> [f64; 2] {
+        [0.0, 1.0]
     }
 }
 
