@@ -1,6 +1,6 @@
 This dIrectory contains some sample configurations for the Sender application, specialized for specific tasks with no unneeded configuration options or comments.
 
-In order to use one, rename it to `remote-wheel-sender.toml` and place it in the same directory as the Remote Wheel Sender application.
+In order to use one, rename it to `remote-wheel-sender.toml` and place it in the same directory as the Remote Wheel Sender application. Configurations will likely require minor changes to make them suitable for your setup.
 
 The files currently here are:
 
