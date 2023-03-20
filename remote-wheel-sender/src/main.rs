@@ -136,7 +136,12 @@ fn init_logger() -> AnyResult<()> {
     let file_logger = simplelog::WriteLogger::new(log::LevelFilter::Trace, file_config, file);
 
     simplelog::CombinedLogger::init(vec![term_logger, file_logger])
-        .context("Failed to install logger")
+        .context("Failed to install logger")?;
+
+    let version = env!("CARGO_PKG_VERSION");
+    log::info!("Remote Wheel Sender v{version} starting.");
+
+    Ok(())
 }
 
 async fn run_cancel(cancel_rx: ChannelRx<()>) -> AnyResult<()> {
