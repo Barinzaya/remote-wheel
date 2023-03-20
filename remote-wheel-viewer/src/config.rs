@@ -8,11 +8,15 @@ use smol::net::SocketAddr;
 
 #[derive(Debug, Deserialize)]
 pub struct AppConfig {
+    pub display: DisplayConfig,
+    pub osc: OscConfig,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DisplayConfig {
     #[serde(default)]
     pub background: Color,
     pub wheel: PathBuf,
-
-    pub osc: OscConfig,
 }
 
 #[derive(Debug, Deserialize)]
@@ -26,10 +30,10 @@ impl AppConfig {
     }
 
     fn read_from_path(path: &Path) -> AnyResult<AppConfig> {
-        let raw: Cow<[u8]> = match std::fs::read(path) {
+        let raw: Cow<str> = match std::fs::read_to_string(path) {
             Ok(s) => Cow::Owned(s),
             Err(e) if e.kind() == ErrorKind::NotFound => {
-                let default = include_bytes!("default-config.yaml");
+                let default = include_str!("default-config.toml");
 
                 std::fs::write(path, default).with_context(|| {
                     format!(
@@ -45,7 +49,7 @@ impl AppConfig {
             })?,
         };
 
-        let config = serde_yaml::from_slice(&raw)
+        let config = toml::from_str(raw.as_ref())
             .with_context(|| format!("Failed to parse configuration from <{}>", path.display()))?;
         Ok(config)
     }

@@ -14,5 +14,5 @@ rfd = "0.11"
 rosc = { git = "https://github.com/barinzaya/rosc", branch = "encoder-improvements" }
 serde = { version = "1", features = ["derive", "rc"] }
 serde_with = "2"
-serde_yaml = "0.9"
 smol = "1"
+toml = { version = "0.7", default-features = false, features = ["parse"] }

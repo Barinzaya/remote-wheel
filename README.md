@@ -20,7 +20,7 @@ When run, both applications will create their default configuration files, which
 
 ### Sender Configuration
 
-The Sender application will create a default configuration file named `remote-wheel-sender.yaml`. The program will also print out a list of connected controllers that it detects, which may be useful for configuring it.
+The Sender application will create a default configuration file named `remote-wheel-sender.toml`. The program will also print out a list of connected controllers that it detects, which may be useful for configuring it.
 
 The most important configuration change that needs to be made for the sender is to set the controller that it will use. The default configuration has a controller name of `Controller Name Here`; copy/paste or retype the name from the application's output and replace this default name to configure it to use the correct input. Note that the controller name is currently case-sensitive!
 

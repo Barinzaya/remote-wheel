@@ -46,9 +46,9 @@ fn main() -> ExitCode {
 
 fn run() -> AnyResult<()> {
     let config =
-        AppConfig::read_from("remote-wheel-viewer.yaml").context("Failed to load configuration")?;
+        AppConfig::read_from("remote-wheel-viewer.toml").context("Failed to load configuration")?;
 
-    let wheel_image = if config.wheel == Path::new("default") {
+    let wheel_image = if config.display.wheel == Path::new("default") {
         image::io::Reader::with_format(
             Cursor::new(include_bytes!("default-wheel.png")),
             ImageFormat::Png,
@@ -56,7 +56,7 @@ fn run() -> AnyResult<()> {
         .decode()
         .context("Failed to decode wheel image")?
     } else {
-        image::io::Reader::open(&config.wheel)
+        image::io::Reader::open(&config.display.wheel)
             .context("Failed to open wheel image")?
             .decode()
             .context("Failed to decode wheel image")?
@@ -106,7 +106,7 @@ impl App {
         let egui = cc.egui_ctx.clone();
 
         App {
-            background: config.background.into(),
+            background: config.display.background.into(),
             rotation: 0.0,
             wheel_texture: cc.egui_ctx.load_texture(
                 "wheel",
