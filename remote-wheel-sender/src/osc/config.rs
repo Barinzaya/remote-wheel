@@ -165,6 +165,10 @@ impl<'de, I: Deserialize<'de>> serde::de::Visitor<'de> for OscParameterVisitor<'
         Ok(value)
     }
 
+    fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<Self::Value, E> {
+        self.visit_string(v.to_string())
+    }
+
     fn visit_string<E: serde::de::Error>(self, v: String) -> Result<Self::Value, E> {
         Ok(OscParameter::String(v))
     }
