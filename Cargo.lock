@@ -1881,7 +1881,7 @@ dependencies = [
 
 [[package]]
 name = "remote-wheel-sender"
-version = "0.3.0-a2"
+version = "0.3.0-a3"
 dependencies = [
  "anyhow",
  "async-broadcast",
