@@ -7,5 +7,5 @@ The files currently here are:
 | File | Description |
 |------|-------------|
 | [with-viewer.toml](with-viewer.toml) | A very simple plain OSC setup, suitable for use with the Remote Wheel Viewer application. |
-| [with-vnyan-single.toml](with-vnyan-single.toml) | A simple VMC setup on a single PC, created to be compatible with the VNyan assets in the [vnyan directory](../vnyan). |
-| [with-vnyan-game.toml](with-vnyan-game.toml) and [with-vnyan-stream.toml](with-vnyan-stream.toml) | A more complex OSC/VMC setup for a dual-PC setup, created to be compatible with the VNyan assets in the [vnyan directory](../vnyan). |
+| [with-vnyan-single.toml](with-vnyan-single.toml) | A simple VMC setup on a single PC, created to be compatible with the VNyan assets in the [vnyan directory](/vnyan). |
+| [with-vnyan-game.toml](with-vnyan-game.toml) and [with-vnyan-stream.toml](with-vnyan-stream.toml) | A more complex OSC/VMC setup for a dual-PC setup, created to be compatible with the VNyan assets in the [vnyan directory](/vnyan). |
