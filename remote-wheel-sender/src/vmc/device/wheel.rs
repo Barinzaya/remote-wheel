@@ -2,6 +2,7 @@ use anyhow::{ensure, Error as AnyError, Result as AnyResult};
 use glam::{EulerRot, Quat, Vec3, Vec3A};
 use serde::Deserialize;
 use std::f32::consts::TAU;
+use string_cache::DefaultAtom;
 
 use crate::vmc::bone::Bone;
 
@@ -13,6 +14,7 @@ pub struct Wheel {
 
     angle: f32,
     base_rot: Quat,
+    tracker: Option<DefaultAtom>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -21,6 +23,7 @@ pub struct WheelConfig {
     position: [f32; 3],
     rotation: [f32; 3],
     radius: f32,
+    tracker: Option<DefaultAtom>,
 }
 
 impl TryFrom<WheelConfig> for Wheel {
@@ -43,6 +46,7 @@ impl TryFrom<WheelConfig> for Wheel {
 
             angle: 0.0,
             base_rot: rot,
+            tracker: config.tracker,
         })
     }
 }
@@ -53,6 +57,7 @@ impl Default for WheelConfig {
             position: [0.0, 0.0, 0.0],
             rotation: [0.0, 0.0, 0.0],
             radius: 0.17,
+            tracker: None,
         }
     }
 }
@@ -83,5 +88,11 @@ impl Wheel {
     pub fn set_value(&mut self, value: f32) {
         self.angle = value;
         self.rot = self.base_rot * Quat::from_rotation_z(-value.to_radians());
+    }
+
+    pub fn trackers(&self, mut f: impl FnMut(DefaultAtom, Vec3A, Quat)) {
+        if let Some(ref tracker) = self.tracker.clone() {
+            f(tracker.clone(), self.pos.into(), self.rot);
+        }
     }
 }

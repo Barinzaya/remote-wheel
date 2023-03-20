@@ -87,6 +87,7 @@ pub async fn run(
                 tracking.update(&packet);
                 avatar.update(0.0, &devices);
                 avatar.apply_to(&mut tracking);
+                apply_device_trackers(devices.values(), &mut tracking);
                 packets.apply_data(&tracking);
 
                 let mut cursor = Cursor::new(&mut recv_buffer);
@@ -687,5 +688,16 @@ impl OscMessageExt for rosc::OscMessage {
                 rot: glam::Quat::from_xyzw(rx, ry, rz, rw).normalize(),
             },
         ))
+    }
+}
+
+fn apply_device_trackers<'a>(
+    devices: impl IntoIterator<Item = &'a device::Device>,
+    tracking: &mut TrackingData,
+) {
+    for device in devices {
+        device.trackers(|name, pos, rot| {
+            tracking.update_device(Device::Tracker, name, &TrackingPoint { pos, rot });
+        });
     }
 }

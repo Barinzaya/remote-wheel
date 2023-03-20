@@ -1,6 +1,7 @@
 use anyhow::{Error as AnyError, Result as AnyResult};
-use glam::{Quat, Vec3};
+use glam::{Quat, Vec3, Vec3A};
 use serde::Deserialize;
+use string_cache::DefaultAtom;
 
 use super::bone::Bone;
 
@@ -29,6 +30,12 @@ impl Device {
     pub fn set_value(&mut self, value: f32) {
         match *self {
             Device::Wheel(ref mut w) => w.set_value(value),
+        }
+    }
+
+    pub fn trackers(&self, f: impl FnMut(DefaultAtom, Vec3A, Quat)) {
+        match *self {
+            Device::Wheel(ref w) => w.trackers(f),
         }
     }
 }
