@@ -7,7 +7,7 @@ use string_cache::DefaultAtom;
 
 use super::device::Device;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Default, Deserialize)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
 pub struct Config {
     enabled: bool,
@@ -60,19 +60,6 @@ pub struct EventConfig<T> {
 impl Config {
     pub fn enabled(&self) -> bool {
         self.enabled
-    }
-}
-
-impl Default for Config {
-    fn default() -> Config {
-        Config {
-            enabled: false,
-            input: InputConfig::default(),
-            output: OutputConfig::default(),
-            report_interval: Some(60.0),
-
-            device: HashMap::new(),
-        }
     }
 }
 
