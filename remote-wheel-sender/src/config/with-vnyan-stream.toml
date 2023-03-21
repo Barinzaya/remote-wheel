@@ -29,7 +29,7 @@
 [vmc]
 	enabled = true
 	input.address = "127.0.0.1:3332" # NOTE: VSeeFace should be configured to send its VMC output here!
-	output.address = "127.0.0.1:3333" # CHANGEME: If you've changed VNyan's VMC pont, update it here as well!
+	output.address = "127.0.0.1:3333" # CHANGEME: If you've changed VNyan's VMC port, update it here as well!
 	report-interval = 60
 
 [vmc.device.wheel]
