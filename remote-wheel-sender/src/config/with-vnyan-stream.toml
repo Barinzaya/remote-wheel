@@ -1,0 +1,87 @@
+# This configuration file is set up to receive the rotation of the wheel, as well as shift paddle and
+# pedal inputs, via OSC. These values can bhen be injected directly into VNyan to pose the avatar
+# and/or peripheral props.
+#
+# A VNyan node graph and props that are intended to work with this configuration can be found at:
+# https://github.com/barinzaya/remote-wheel/tree/main/vnyan
+#
+# There are CHANGEME tags in the configuration below that indicate things you may need to change.
+# Upon closing, this configuration will be saved as remote-wheel-sender.toml, and you may edit it
+# again at any time.
+#
+# The configuration is organized into sections, with each section indicated by a section header in
+# square brackets. Double square brackets may also be used for section headers of which there can be
+# more than one.
+#
+# All configuration entries (lines of the format key = value) belong to the last section for which
+# there was a header. Indentation is optional, but can help make the file more readable.
+#
+# Any text after a # character, such as this text, is called a comment. Comments are ignored, and do
+# not affect the configuration. Comments can be used to add notes, such as these, or to temporarily
+# remove values that you may want to add back in later. You may remove any comment without affecting
+# the configuration.
+
+[osc]
+	enabled = true
+	input.address = "0.0.0.0:19794"
+	output.address = "127.0.0.1:19795"
+
+[vmc]
+	enabled = true
+	input.address = "127.0.0.1:3332" # NOTE: VSeeFace should be configured to send its VMC output here!
+	output.address = "127.0.0.1:3333" # CHANGEME: If you've changed VNyan's VMC pont, update it here as well!
+	report-interval = 60
+
+[vmc.device.wheel]
+	type = "wheel"
+	position = [0, 0.95, 0.3] # CHANGEME: Adjust the wheel's position to suit the avatar.
+	rotation = [0, 0, 0]
+	radius = 0.13 # CHANGEME: Adjust the wheel's size to suit the avatar.
+	tracker = "Wheel"
+
+
+[[axis.wheel.input]]
+	osc.address = "/wheel/rotation"
+	osc.range = [-450, 450]
+
+[axis.wheel.output.vmc.on-update]
+	blendshape.wheel = [0, 100]
+	device.wheel = [-450, 450]
+
+
+[[button.shift-up.input]]
+	osc.address = "/wheel/shift-up"
+
+[button.shift-up.output.vmc.on-update]
+	blendshape.paddleUp = [0, 100]
+
+
+[[button.shift-down.input]]
+	osc.address = "/wheel/shift-down"
+
+[button.shift-down.output.vmc.on-update]
+	blendshape.paddleDown = [0, 100]
+
+
+[[axis.gas.input]]
+	osc.address = "/pedals/gas"
+	osc.range = [0, 1]
+
+[axis.gas.output.vmc.on-update]
+	blendshape.gas = [0, 100]
+
+
+[[axis.brake.input]]
+	osc.address = "/pedals/brake"
+	osc.range = [0, 1]
+
+[axis.brake.output.vmc.on-update]
+	blendshape.brake = [0, 100]
+
+
+[[axis.clutch.input]]
+	osc.address = "/pedals/clutch"
+	osc.range = [0, 1]
+
+[axis.clutch.output.vmc.on-update]
+	blendshape.clutch = [0, 100]

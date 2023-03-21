@@ -1,0 +1,35 @@
+# This configuration file is set up to send the rotation of a wheel to another application via OSC.
+# The exact setup is tailored to use with the Viewer application, but can be changed to provide
+# input into other applications that support OSC as well.
+#
+# There are CHANGEME tags in the configuration below that indicate things you may need to change.
+# Upon closing, this configuration will be saved as remote-wheel-sender.toml, and you may edit it
+# again at any time.
+#
+# The configuration is organized into sections, with each section indicated by a section header in
+# square brackets. Double square brackets may also be used for section headers of which there can be
+# more than one.
+#
+# All configuration entries (lines of the format key = value) belong to the last section for which
+# there was a header. Indentation is optional, but can help make the file more readable.
+#
+# Any text after a # character, such as this text, is called a comment. Comments are ignored, and do
+# not affect the configuration. Comments can be used to add notes, such as these, or to temporarily
+# remove values that you may want to add back in later. You may remove any comment without affecting
+# the configuration.
+
+[osc]
+	enabled = true
+	input.address = "0.0.0.0:0"
+	output.address = "127.0.0.1:19794" # CHANGEME: If using a dual-PC setup, change 127.0.0.1 to the IP address of the stream PC.
+
+[[axis.wheel.input]]
+	# CHANGEME: Change this to the name of the steering wheel controller and the axis name of
+	# the steering wheel input. The Sender application will log the names of all connected controllers
+	# when run, you can grab the name there.
+	controller.name = "Controller Name"
+	controller.axis = 1
+
+[axis.wheel.output.osc.on-update]
+	# CHANGEME: If your wheel is not a 900-degree wheel (450 degrees from center each way), change this range.
+	"/wheel/rotation" = [ {input=[-450,450]} ]

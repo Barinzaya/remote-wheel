@@ -101,16 +101,62 @@ impl AppConfig {
         let raw: Cow<str> = match smol::fs::read_to_string(path).await {
             Ok(s) => Cow::Owned(s),
             Err(e) if e.kind() == ErrorKind::NotFound => {
-                let default = include_str!("default-config.toml");
+                log::info!("No configuration file found at <{}>. Prompting for which configuration to write.", path.display());
+                log::logger().flush();
 
-                smol::fs::write(path, default).await.with_context(|| {
-                    format!(
-                        "Failed to write default configuration to <{}>",
+                let theme = dialoguer::theme::ColorfulTheme::default();
+                let mut select = dialoguer::Select::with_theme(&theme);
+                select.with_prompt("Which best describes how you want to use this application?");
+                select.report(false);
+
+                for sample in CONFIGS {
+                    select.item(sample.desc);
+                }
+
+                let index = select.interact()
+                    .context("Failed to prompt for default configuration")?;
+                let config = &CONFIGS[index];
+
+                log::info!(
+                    "{} configuration was selected. Opening editor for configuration.",
+                    config.name
+                );
+
+                let contents = dialoguer::Editor::new()
+                    .extension(".toml")
+                    .trim_newlines(false)
+                    .edit(config.contents)
+                    .context("Failed to open editor for initial configuration")?;
+
+                let (edited, contents) = (
+                    contents.is_some(),
+                    contents
+                        .map(Cow::Owned)
+                        .unwrap_or(Cow::Borrowed(config.contents)),
+                );
+
+                if edited {
+                    log::info!(
+                        "Initial configuration was edited. Saving edited configuration to <{}>.",
                         path.display()
-                    )
-                })?;
+                    );
+                } else {
+                    log::info!(
+                        "Initial configuration was not edited. Saving base configuration to <{}>.",
+                        path.display()
+                    );
+                }
 
-                Cow::Borrowed(default)
+                smol::fs::write(path, contents.as_ref())
+                    .await
+                    .with_context(|| {
+                        format!(
+                            "Failed to write default configuration to <{}>",
+                            path.display()
+                        )
+                    })?;
+
+                contents
             }
             Err(e) => Err(e).with_context(|| {
                 format!("Failed to read configuration from <{}>", path.display())
@@ -122,3 +168,41 @@ impl AppConfig {
         Ok(config)
     }
 }
+
+struct SampleConfig {
+    name: &'static str,
+    desc: &'static str,
+    contents: &'static str,
+}
+
+static CONFIGS: &[SampleConfig] = &[
+    SampleConfig {
+        name: "Viewer",
+        desc: "2D wheel overlay with the Viewer application",
+        contents: include_str!("with-viewer.toml"),
+    },
+
+    SampleConfig {
+        name: "VNyan (Single PC)",
+        desc: "3D wheel overlay with VNyan (this PC has the controller connected and is also running VNyan)",
+        contents: include_str!("with-vnyan-single.toml"),
+    },
+
+    SampleConfig {
+        name: "VNyan (Game PC)",
+        desc: "3D wheel overlay with VNyan (this PC has the controller connected; VNyan is on another PC)",
+        contents: include_str!("with-vnyan-game.toml"),
+    },
+
+    SampleConfig {
+        name: "VNyan (Stream PC)",
+        desc: "3D wheel overlay with VNyan (this PC is running VNyan; the controller is connected to another PC)",
+        contents: include_str!("with-vnyan-stream.toml"),
+    },
+
+    SampleConfig {
+        name: "Reference",
+        desc: "Other (manual configuration)",
+        contents: include_str!("reference.toml"),
+    },
+];

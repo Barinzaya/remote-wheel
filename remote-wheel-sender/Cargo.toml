@@ -10,6 +10,7 @@ anyhow = "1"
 async-broadcast = "0.5"
 console = { version = "0.15", features = [], default-features = false }
 ctrlc = "3"
+dialoguer = { version = "0.10", features = ["editor"], default-features = false }
 futures = "0.3"
 glam = { version = "0.23", optional = true }
 hashbrown = { version = "0.13", features = ["serde"] }
@@ -24,7 +25,7 @@ simplelog = "0.12"
 smol = "1"
 string_cache = "0.8"
 time = { version = "0.3", features = ["formatting"] }
-toml = { version = "0.7", default-features = false, features = ["parse"] }
+toml = { version = "0.7", features = ["parse"], default-features = false }
 
 [features]
 default = ["osc", "vmc"]

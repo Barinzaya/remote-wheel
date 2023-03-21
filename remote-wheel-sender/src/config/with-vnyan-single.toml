@@ -1,0 +1,83 @@
+# This configuration file is set up to read the rotation of the wheel, as well as shift paddle and
+# pedal inputs, and inject them directly into VNyan to pose the avatar and/or peripheral props.
+#
+# A VNyan node graph and props that are intended to work with this configuration can be found at:
+# https://github.com/barinzaya/remote-wheel/tree/main/vnyan
+#
+# There are CHANGEME tags in the configuration below that indicate things you may need to change.
+# Upon closing, this configuration will be saved as remote-wheel-sender.toml, and you may edit it
+# again at any time.
+#
+# The configuration is organized into sections, with each section indicated by a section header in
+# square brackets. Double square brackets may also be used for section headers of which there can be
+# more than one.
+#
+# All configuration entries (lines of the format key = value) belong to the last section for which
+# there was a header. Indentation is optional, but can help make the file more readable.
+#
+# Any text after a # character, such as this text, is called a comment. Comments are ignored, and do
+# not affect the configuration. Comments can be used to add notes, such as these, or to temporarily
+# remove values that you may want to add back in later. You may remove any comment without affecting
+# the configuration.
+
+[vmc]
+	enabled = true
+	input.address = "127.0.0.1:3332"
+	output.address = "127.0.0.1:3333"
+	report-interval = 60
+
+[vmc.device.wheel]
+	type = "wheel"
+	position = [0, 0.95, 0.3]
+	rotation = [0, 0, 0]
+	radius = 0.13
+	tracker = "Wheel"
+
+
+[[axis.wheel.input]]
+	controller.name = "Controller Name"
+	controller.axis = 1
+
+[axis.wheel.output.vmc.on-update]
+	blendshape.wheel = [0, 100]
+	device.wheel = [-450, 450]
+
+
+[[axis.gas.input]]
+	controller.name = "Controller Name"
+	controller.axis = 3
+
+[axis.gas.output.vmc.on-update]
+	blendshape.gas = [0, 100]
+
+
+[[axis.brake.input]]
+	controller.name = "Controller Name"
+	controller.axis = 2
+
+[axis.brake.output.vmc.on-update]
+	blendshape.brake = [0, 100]
+
+
+[[axis.clutch.input]]
+	controller.name = "Controller Name"
+	controller.axis = 4
+
+[axis.clutch.output.vmc.on-update]
+	blendshape.clutch = [0, 100]
+
+
+[[button.paddleUp.input]]
+	controller.name = "Controller Name"
+	controller.button = 2
+
+[button.paddleUp.output.vmc.on-update]
+	blendshape.paddleUp = [0, 100]
+
+
+[[button.paddleDown.input]]
+	controller.name = "Controller Name"
+	controller.button = 1
+
+[button.paddleDown.output.vmc.on-update]
+	blendshape.paddleDown = [0, 100]

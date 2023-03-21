@@ -92,7 +92,7 @@ impl Wheel {
 
     pub fn trackers(&self, mut f: impl FnMut(DefaultAtom, Vec3A, Quat)) {
         if let Some(ref tracker) = self.tracker.clone() {
-            f(tracker.clone(), self.pos.into(), self.rot);
+            f(tracker.clone(), self.pos, self.rot);
         }
     }
 }

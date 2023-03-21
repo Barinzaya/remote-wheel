@@ -1,5 +1,5 @@
 use std::fmt::Display;
-use std::num::NonZeroU32;
+use std::num::{NonZeroU32, NonZeroU8};
 use std::sync::Arc;
 
 use anyhow::{bail, Context as _, Result as AnyResult};
@@ -27,33 +27,18 @@ pub struct ButtonInputConfig {
     button: NonZeroU32,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[serde(rename_all = "kebab-case")]
-pub enum Axis {
-    X,
-    Y,
-    Z,
-    Rx,
-    Ry,
-    Rz,
-    Slider,
-    Dial,
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct Axis(NonZeroU8);
+
+impl<'de> Deserialize<'de> for Axis {
+    fn deserialize<D: serde::de::Deserializer<'de>>(de: D) -> Result<Self, D::Error> {
+        de.deserialize_any(AxisVisitor)
+    }
 }
 
 impl Display for Axis {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let name = match *self {
-            Axis::X => "X",
-            Axis::Y => "Y",
-            Axis::Z => "Z",
-            Axis::Rx => "Rx",
-            Axis::Ry => "Ry",
-            Axis::Rz => "Rz",
-            Axis::Slider => "Slider",
-            Axis::Dial => "Dial",
-        };
-
-        write!(f, "{}", name)
+        write!(f, "Axis #{}", self.0)
     }
 }
 
@@ -61,16 +46,57 @@ impl TryFrom<u8> for Axis {
     type Error = ();
 
     fn try_from(value: u8) -> Result<Self, ()> {
-        match value {
-            0 => Ok(Axis::X),
-            1 => Ok(Axis::Y),
-            2 => Ok(Axis::Z),
-            3 => Ok(Axis::Rx),
-            4 => Ok(Axis::Ry),
-            5 => Ok(Axis::Rz),
-            6 => Ok(Axis::Slider),
-            7 => Ok(Axis::Dial),
-            _ => Err(()),
+        value
+            .checked_add(1)
+            .and_then(NonZeroU8::new)
+            .map(Axis)
+            .ok_or(())
+    }
+}
+
+struct AxisVisitor;
+
+impl AxisVisitor {
+    fn visit_int<I: TryInto<u8>>(self, v: I) -> Option<Axis> {
+        v.try_into().ok().and_then(NonZeroU8::new).map(Axis)
+    }
+}
+
+impl<'de> serde::de::Visitor<'de> for AxisVisitor {
+    type Value = Axis;
+
+    fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "axis number (1-255)")
+    }
+
+    fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<Self::Value, E> {
+        self.visit_int(v).ok_or_else(|| {
+            E::invalid_value(serde::de::Unexpected::Signed(v), &"axis number (1-255)")
+        })
+    }
+
+    fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<Self::Value, E> {
+        self.visit_int(v).ok_or_else(|| {
+            E::invalid_value(serde::de::Unexpected::Unsigned(v), &"axis number (1-255)")
+        })
+    }
+
+    fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<Self::Value, E> {
+        // For backwards-compatibility
+        // These names don't necessarily correspond to the correct axes!
+        match v {
+            "x" => Ok(Axis(NonZeroU8::new(1).unwrap())),
+            "y" => Ok(Axis(NonZeroU8::new(2).unwrap())),
+            "z" => Ok(Axis(NonZeroU8::new(3).unwrap())),
+            "rx" => Ok(Axis(NonZeroU8::new(4).unwrap())),
+            "ry" => Ok(Axis(NonZeroU8::new(5).unwrap())),
+            "rz" => Ok(Axis(NonZeroU8::new(6).unwrap())),
+            "slider" => Ok(Axis(NonZeroU8::new(7).unwrap())),
+            "dial" => Ok(Axis(NonZeroU8::new(8).unwrap())),
+            _ => Err(E::unknown_variant(
+                v,
+                &["x", "y", "z", "rx", "ry", "rz", "slider", "dial"],
+            )),
         }
     }
 }
