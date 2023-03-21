@@ -22,19 +22,22 @@
 
 [vmc]
 	enabled = true
-	input.address = "127.0.0.1:3332"
-	output.address = "127.0.0.1:3333"
+	input.address = "127.0.0.1:3332" # NOTE: VSeeFace should be configured to send its VMC output here!
+	output.address = "127.0.0.1:3333" # CHANGEME: If you've changed VNyan's VMC pont, update it here as well!
 	report-interval = 60
 
 [vmc.device.wheel]
 	type = "wheel"
-	position = [0, 0.95, 0.3]
+	position = [0, 0.95, 0.3] # CHANGEME: Adjust the wheel's position to suit the avatar.
 	rotation = [0, 0, 0]
-	radius = 0.13
+	radius = 0.13 # CHANGEME: Adjust the wheel's size to suit the avatar.
 	tracker = "Wheel"
 
 
 [[axis.wheel.input]]
+	# CHANGEME: Change this to the name of the steering wheel controller and the axis number of
+	# the steering axis. The Sender application will log the names of all connected controllers
+	# when run, you can grab the name there.
 	controller.name = "Controller Name"
 	controller.axis = 1
 
@@ -43,7 +46,32 @@
 	device.wheel = [-450, 450]
 
 
+[[button.shift-up.input]]
+	# CHANGEME: Change this to the name of the steering wheel controller and the button number of
+	# the shift-up paddle. The Sender application will log the names of all connected controllers
+	# when run, you can grab the name there.
+	controller.name = "Controller Name"
+	controller.button = 2
+
+[button.shift-up.output.vmc.on-update]
+	blendshape.paddleUp = [0, 100]
+
+
+[[button.shift-down.input]]
+	# CHANGEME: Change this to the name of the steering wheel controller and the button number of
+	# the shift-down paddle. The Sender application will log the names of all connected controllers
+	# when run, you can grab the name there.
+	controller.name = "Controller Name"
+	controller.button = 1
+
+[button.shift-down.output.vmc.on-update]
+	blendshape.paddleDown = [0, 100]
+
+
 [[axis.gas.input]]
+	# CHANGEME: Change this to the name of the steering wheel controller and the axis number of
+	# the gas pedal axis. The Sender application will log the names of all connected controllers
+	# when run, you can grab the name there.
 	controller.name = "Controller Name"
 	controller.axis = 3
 
@@ -52,6 +80,9 @@
 
 
 [[axis.brake.input]]
+	# CHANGEME: Change this to the name of the steering wheel controller and the axis number of
+	# the brake pedal axis. The Sender application will log the names of all connected controllers
+	# when run, you can grab the name there.
 	controller.name = "Controller Name"
 	controller.axis = 2
 
@@ -60,24 +91,11 @@
 
 
 [[axis.clutch.input]]
+	# CHANGEME: Change this to the name of the steering wheel controller and the axis number of
+	# the clutch pedal axis. The Sender application will log the names of all connected controllers
+	# when run, you can grab the name there.
 	controller.name = "Controller Name"
 	controller.axis = 4
 
 [axis.clutch.output.vmc.on-update]
 	blendshape.clutch = [0, 100]
-
-
-[[button.paddleUp.input]]
-	controller.name = "Controller Name"
-	controller.button = 2
-
-[button.paddleUp.output.vmc.on-update]
-	blendshape.paddleUp = [0, 100]
-
-
-[[button.paddleDown.input]]
-	controller.name = "Controller Name"
-	controller.button = 1
-
-[button.paddleDown.output.vmc.on-update]
-	blendshape.paddleDown = [0, 100]

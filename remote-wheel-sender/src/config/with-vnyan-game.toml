@@ -29,7 +29,10 @@
 
 
 [[axis.wheel.input]]
-	controller.name = "Controller Name" # CHANGEME: Change this to the name of the steering wheel controller. The Sender application will log the names of all connected controllers when run, you can grab the name there.
+	# CHANGEME: Change this to the name of the steering wheel controller and the axis number of
+	# the steering axis. The Sender application will log the names of all connected controllers
+	# when run, you can grab the name there.
+	controller.name = "Controller Name"
 	controller.axis = 1
 
 [axis.wheel.output.osc.on-update]
@@ -59,7 +62,10 @@
 
 
 [[axis.gas.input]]
-	controller.name = "Controller Name" # CHANGEME: Change this to the name of the pedal controller. The Sender application will log the names of all connected controllers when run, you can grab the name there.
+	# CHANGEME: Change this to the name of the steering wheel controller and the axis number of
+	# the gas pedal axis. The Sender application will log the names of all connected controllers
+	# when run, you can grab the name there.
+	controller.name = "Controller Name"
 	controller.axis = 3
 
 [axis.gas.output.osc.on-update]
@@ -67,7 +73,10 @@
 
 
 [[axis.brake.input]]
-	controller.name = "Controller Name" # CHANGEME: Change this to the name of the pedal controller. The Sender application will log the names of all connected controllers when run, you can grab the name there.
+	# CHANGEME: Change this to the name of the steering wheel controller and the axis number of
+	# the brake pedal axis. The Sender application will log the names of all connected controllers
+	# when run, you can grab the name there.
+	controller.name = "Controller Name"
 	controller.axis = 2
 
 [axis.brake.output.osc.on-update]
@@ -75,7 +84,10 @@
 
 
 [[axis.clutch.input]]
-	controller.name = "Controller Name" # CHANGEME: Change this to the name of the pedal controller. The Sender application will log the names of all connected controllers when run, you can grab the name there.
+	# CHANGEME: Change this to the name of the steering wheel controller and the axis number of
+	# the clutch pedal axis. The Sender application will log the names of all connected controllers
+	# when run, you can grab the name there.
+	controller.name = "Controller Name"
 	controller.axis = 4
 
 [axis.clutch.output.osc.on-update]
