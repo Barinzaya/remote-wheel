@@ -44,6 +44,7 @@ pub async fn run(
     let mut tracking = TrackingData::new();
 
     let mut num_received = 0u32;
+    let mut processing_time_current = Duration::ZERO;
     let mut processing_time_max = Duration::ZERO;
     let mut processing_time_min = Duration::MAX;
     let mut processing_time_total = Duration::ZERO;
@@ -84,26 +85,30 @@ pub async fn run(
                     },
                 };
 
-                tracking.update(&packet);
-                avatar.update(0.0, &devices);
-                avatar.apply_to(&mut tracking);
-                apply_device_trackers(devices.values(), &mut tracking);
-                packets.apply_data(&tracking);
+                if tracking.update(&packet) {
+                    avatar.update(0.0, &devices);
+                    avatar.apply_to(&mut tracking);
+                    apply_device_trackers(devices.values(), &mut tracking);
+                    packets.apply_data(&tracking);
 
-                let mut cursor = Cursor::new(&mut recv_buffer);
-                let data_len = packets.encode(&mut cursor)
-                    .context("Failed to encode VMC bundle")?;
-                let data = &recv_buffer[..data_len];
+                    let mut cursor = Cursor::new(&mut recv_buffer);
+                    let data_len = packets.encode(&mut cursor)
+                        .context("Failed to encode VMC bundle")?;
+                    let data = &recv_buffer[..data_len];
 
-                socket.send_to(data, config.output.address).await
-                    .context("failed to send VMC bundle")?;
+                    socket.send_to(data, config.output.address).await
+                        .context("failed to send VMC bundle")?;
 
-                let processing_time = recv_time.elapsed();
-                num_received += 1;
+                    let processing_time = processing_time_current + recv_time.elapsed();
+                    num_received += 1;
 
-                processing_time_max = processing_time_max.max(processing_time);
-                processing_time_min = processing_time_min.min(processing_time);
-                processing_time_total += processing_time;
+                    processing_time_current = Duration::ZERO;
+                    processing_time_max = processing_time_max.max(processing_time);
+                    processing_time_min = processing_time_min.min(processing_time);
+                    processing_time_total += processing_time;
+                } else {
+                    processing_time_current += recv_time.elapsed();
+                }
             },
 
             _ = report_timer.next().fuse() => {
@@ -476,12 +481,13 @@ impl TrackingData {
         self.root = point;
     }
 
-    fn update(&mut self, packet: &rosc::OscPacket) {
+    fn update(&mut self, packet: &rosc::OscPacket) -> bool {
+        let mut flush = false;
         let result: AnyResult<()> = (|| {
             match *packet {
                 rosc::OscPacket::Bundle(ref bundle) => {
                     for child in &bundle.content {
-                        self.update(child);
+                        flush |= self.update(child);
                     }
                 }
 
@@ -541,6 +547,7 @@ impl TrackingData {
                                 message.args.len()
                             );
                             self.tracking = 1 == message.arg_i32(0)?;
+                            flush = true;
                         }
 
                         "/VMC/Ext/T" => {
@@ -564,6 +571,8 @@ impl TrackingData {
         if let Err(e) = result {
             log::debug!("Failed to process received VMC message: {}", e);
         }
+
+        flush
     }
 
     fn update_blendshape(&mut self, name: impl Into<DefaultAtom>, value: f32) {
