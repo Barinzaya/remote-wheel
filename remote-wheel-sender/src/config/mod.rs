@@ -113,7 +113,8 @@ impl AppConfig {
                     select.item(sample.desc);
                 }
 
-                let index = select.interact()
+                let index = select
+                    .interact()
                     .context("Failed to prompt for default configuration")?;
                 let config = &CONFIGS[index];
 
