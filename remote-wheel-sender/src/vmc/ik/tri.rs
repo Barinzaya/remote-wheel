@@ -73,12 +73,10 @@ pub fn solve(
             ideal_rot = Quat::from_axis_angle(target_dir.into(), 0.5 * twist) * ideal_rot;
         }
 
-        let constrained_rot = base_rot * shoulder_constraint.apply(base_inv_rot * ideal_rot);
-
-        shoulder_rot = base_rot * constrained_rot;
+        shoulder_rot = base_rot * shoulder_constraint.apply(base_inv_rot * ideal_rot);
         chain.link(1).set_rot(shoulder_rot);
 
-        if ideal_rot.angle_between(constrained_rot) <= settings.rot_tolerance {
+        if ideal_rot.angle_between(shoulder_rot) <= settings.rot_tolerance {
             chain.link(3).set_rot(target_rot);
             return Ok(i + 1);
         }
