@@ -2,17 +2,30 @@
 
 ## About
 
-This is a small pair of applications which allow for a 2D virtual mirror of a racing wheel peripheral to be displayed, e.g. for display on a stream. It is currently rather basic, as this is currently an early proof of concept of this application.
+This is a small pair of applications which allow for a 2D virtual mirror of a racing wheel peripheral to be displayed, e.g. for display on a stream. The 2D display is currently rather basic, as this is currently an early proof of concept of this application.
 
 It is broken up into two separate applications that communicate using the OSC protocol over UDP. This separation is to allow for the wheel peripheral and the application displaying it to run on separate PCs, such as in a streaming setup with 2 separate PCs. It can still be used on a single PC by running both applications on the same PC.
 
 While these applications are intended to be used as a pair, the OSC protocol they use to communicate is standard, and may be able to be used with other such applications. For instance, rather than using the Viewer application to display the wheel and capture it, the Sender application could send messages to something like [OSC for OBS](https://github.com/jshea2/OSC-for-OBS) to rotate a source directly in OBS Studio.
 
-## Usage
+The Sender application also has support for the VMC protocol, allowing it to be used as a filter between a backend motion-capture software (e.g. VSeeFace) and a front-end interface (e.g. VNyan). This allows for the avatar to be posed with its hands on a virtual wheel (note: the logic for this is currently very basic, and the hands don't change rest position), as well as for a 3D wheel prop to be positioned accordingly via a blendshape or a VMC tracker. VNyan props and node graphs that have been created for this purpose can be found in the [vnyan directory](/vnyan).
+
+## Usage (2D)
 
 Download both of the applications from the [releases](https://github.com/Barinzaya/remote-wheel/releases) page. The `remote-wheel-sender` application should be run on the PC that the wheel is connected to, and the `remote-wheel-viewer` application should be run on the PC on which the virtual wheel display is desired. Depending on your setup, these may be the same PC.
 
-Run both applications. Upon first run, they will generate configuration files in the directory from which they are run, which you may want to look over. The Sender's configuration file will require changes to function. The Viewer will probably be usable as-is, but has a couple of options that could be useful.
+Run both applications. Upon first run, they will generate configuration files in the directory from which they are run, which you may want to look over. When prompted by the Sender during first start-up, specify that its intended use is for a 2D wheel overlay, and a suitable configuration file will be generated, though it will still require some customization. Look for `CHANGEME` tags in the file. The Viewer will probably be usable as-is, but has a couple of options that could be useful.
+
+## Usage (3D)
+
+For use with a 3D wheel, only the Sender application is required. If using a dual-PC setup, you will want to run it on *both* PCs. The Sender on the game PC will read and send the wheel's position to the Sender on the stream PC, while the Sender on the stream PC will receive the wheel position and alter the VMC datastream accordingly (re-pose the avatar's arms, add blendshapes and VMC trackers).
+
+Run the Sender (on both PCs, if applicable). When prompted, select the appropriate configuration of 3D wheel overlay (single PC, game PC, or stream PC) to generate default configuration files suitable for use. The configuration will likely need to be modified before use:
+- For a single PC, the controller inputs to use, as wheel as the virtual wheel's position and size, will need to be adjusted.
+- For the game PC, the controller inputs to use, as well as how to reach the stream PC, will need to be adjusted.
+- For the stream PC, the virtual wheel's position and size will need to be adjusted.
+
+If using VNyan, you may also want to check out the node graphs and props in the [vnyan directory](/vnyan).
 
 ## Configuration
 
@@ -20,23 +33,15 @@ When run, both applications will create their default configuration files, which
 
 ### Sender Configuration
 
-The Sender application will create a default configuration file named `remote-wheel-sender.toml`. The program will also print out a list of connected controllers that it detects, which may be useful for configuring it.
+Upon first start, the Sender application will prompt for the intended use of the application. This will determine what initial configuration file should be used. Once one is selected, it will be written to `remote-wheel-sender.toml` and start running. Once it starts running, the program will also print out a list of connected controllers that it detects, which may be useful for configuring it.
 
-The most important configuration change that needs to be made for the sender is to set the controller that it will use. The default configuration has a controller name of `Controller Name Here`; copy/paste or retype the name from the application's output and replace this default name to configure it to use the correct input. Note that the controller name is currently case-sensitive!
-
-You may also change the axis on the controller that is used with the `axis` field, and the range of values that are sent. The default configuration assumes a wheel whose steering output is on the X axis, with a total of 900 degrees of rotation (450 degrees from center in each direction).
-
-The address to which the Sender sends its data may also be changed. By default, it is configured to work with the default configuration of the Viewer application running on the same PC, but if the Viewer will be running on a separate PC, then the IP address can be changed to the IP of the computer that should receive it (or `255.255.255.255` if you're lazy and don't mind it being needlessly sent to every computer on the network).
-
-While the default configuration of the Sender is focused on use with the Viewer application, it is far more flexible. It can be configured to watch any number of controller/axis and controller/button combinations, and the OSC address and arguments of the messages that are sent are customizable. All OSC messages are sent to a single IP/port.
-
-This readme will be updated in the future with further details.
+For a full list of available options and what they do, see [the reference configuration](/remote-wheel-sender/src/config/reference.toml).
 
 ## Viewer Configuration
 
 As with the Sender, when run the application will create a default configuration file if it does not already exist. The default configuration should be suitable for some uses.
 
-Configuration of the remote wheel viewer is somewhat simpler. The default configuration will likely work in many cases; it will listen for OSC messages on UDP port 19794, it will use a transparent (when captured) black background, and a default steering wheel image is embedded into the application that will be used.
+Configuration of the Viewer is somewhat simpler. The default configuration will likely work in many cases; it will listen for OSC messages on UDP port 19794, it will use a transparent (when captured) black background, and a default steering wheel image is embedded into the application that will be used.
 
 Note that when capturing with Game Capture in OBS Studio (or Streamlabs), you will want to select a specific window and select the viewer application. The capture sometimes takes a while to grab the capture; it *seems* to capture it more easily when "enable anti-cheat compatibility hook" is disabled on the capture's properties. Moving the mouse around in the viewer's window also seems to help. Once the viewer is captured, it should continue to respond reliably.
 
@@ -50,13 +55,16 @@ There are three things that you may want to configure, in approximate order of i
 
 ## To-do list
 
-Known issues:
+Sender to-do list:
+- [x] Sending of OSC messages for buttons
+- [ ] Animated changing of hand rest positions on the wheel.
+- [ ] Graphical user interface (and possible merge with the Viewer)
+- [ ] Other device types (e.g. flight sticks, shifters, levers, knobs, pedals, etc.)
 
+Viewer known issues:
 - [ ] Game captures of the viewer application don't update when it is minimized.
 
-Features currently on the to-do list:
-
-- [x] Sending of OSC messages for buttons
+Viewer to-do list:
 - [ ] Visible/animated paddle shifters
 - [ ] Animated hands
 - [ ] Animated arms
