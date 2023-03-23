@@ -25,7 +25,7 @@
 [osc]
 	enabled = true
 	input.address = "0.0.0.0:0"
-	output.address = "STREAM_PC_IP_HERE:19794" # CHANGEME: Fill in the IP address of the stream PC.
+	output.address = "255.255.255.255:19794" # CHANGEME: Though this may work as-is, you should replace 255.255.255.255 with the actual IP address of the stream PC.
 
 
 [[axis.wheel.input]]
