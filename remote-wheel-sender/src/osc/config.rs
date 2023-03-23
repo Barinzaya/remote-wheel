@@ -35,7 +35,6 @@ pub struct AxisInputConfig {
 
     #[serde(default = "AxisInputConfig::default_range")]
     pub(super) range: [f64; 2],
-    // TODO: Fix default range
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
