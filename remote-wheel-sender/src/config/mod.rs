@@ -119,36 +119,12 @@ impl AppConfig {
                 let config = &CONFIGS[index];
 
                 log::info!(
-                    "{} configuration was selected. Opening editor for configuration.",
-                    config.name
+                    "{} configuration was selected. Saving to <{}>.",
+                    config.name,
+                    path.display(),
                 );
 
-                let contents = dialoguer::Editor::new()
-                    .extension(".toml")
-                    .trim_newlines(false)
-                    .edit(config.contents)
-                    .context("Failed to open editor for initial configuration")?;
-
-                let (edited, contents) = (
-                    contents.is_some(),
-                    contents
-                        .map(Cow::Owned)
-                        .unwrap_or(Cow::Borrowed(config.contents)),
-                );
-
-                if edited {
-                    log::info!(
-                        "Initial configuration was edited. Saving edited configuration to <{}>.",
-                        path.display()
-                    );
-                } else {
-                    log::info!(
-                        "Initial configuration was not edited. Saving base configuration to <{}>.",
-                        path.display()
-                    );
-                }
-
-                smol::fs::write(path, contents.as_ref())
+                smol::fs::write(path, config.contents)
                     .await
                     .with_context(|| {
                         format!(
@@ -157,7 +133,12 @@ impl AppConfig {
                         )
                     })?;
 
-                contents
+                log::info!(
+                    "Sample configuration has been saved to <{}>.",
+                    path.display()
+                );
+
+                Cow::Borrowed(config.contents)
             }
             Err(e) => Err(e).with_context(|| {
                 format!("Failed to read configuration from <{}>", path.display())
