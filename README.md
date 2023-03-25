@@ -20,12 +20,7 @@ Run both applications. Upon first run, they will generate configuration files in
 
 For use with a 3D wheel, only the Sender application is required. If using a dual-PC setup, you will want to run it on *both* PCs. The Sender on the game PC will read and send the wheel's position to the Sender on the stream PC, while the Sender on the stream PC will receive the wheel position and alter the VMC datastream accordingly (re-pose the avatar's arms, add blendshapes and VMC trackers).
 
-Run the Sender (on both PCs, if applicable). When prompted, select the appropriate configuration of 3D wheel overlay (single PC, game PC, or stream PC) to generate default configuration files suitable for use. The configuration will likely need to be modified before use:
-- For a single PC, the controller inputs to use, as wheel as the virtual wheel's position and size, will need to be adjusted.
-- For the game PC, the controller inputs to use, as well as how to reach the stream PC, will need to be adjusted.
-- For the stream PC, the virtual wheel's position and size will need to be adjusted.
-
-If using VNyan, you may also want to check out the node graphs and props in the [vnyan directory](/vnyan).
+See the [Wiki page](https://github.com/barinzaya/remote-wheel/wiki/3D-Wheel-with-VNyan) for a full description.
 
 ## Configuration
 
