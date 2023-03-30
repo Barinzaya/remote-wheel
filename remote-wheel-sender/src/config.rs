@@ -161,30 +161,30 @@ static CONFIGS: &[SampleConfig] = &[
     SampleConfig {
         name: "Viewer",
         desc: "2D wheel overlay with the Viewer application",
-        contents: include_str!("with-viewer.toml"),
+        contents: include_str!("config/with-viewer.toml"),
     },
 
     SampleConfig {
         name: "VNyan (Single PC)",
         desc: "3D wheel overlay with VNyan (this PC has the controller connected and is also running VNyan)",
-        contents: include_str!("with-vnyan-single.toml"),
+        contents: include_str!("config/with-vnyan-single.toml"),
     },
 
     SampleConfig {
         name: "VNyan (Game PC)",
         desc: "3D wheel overlay with VNyan (this PC has the controller connected; VNyan is on another PC)",
-        contents: include_str!("with-vnyan-game.toml"),
+        contents: include_str!("config/with-vnyan-game.toml"),
     },
 
     SampleConfig {
         name: "VNyan (Stream PC)",
         desc: "3D wheel overlay with VNyan (this PC is running VNyan; the controller is connected to another PC)",
-        contents: include_str!("with-vnyan-stream.toml"),
+        contents: include_str!("config/with-vnyan-stream.toml"),
     },
 
     SampleConfig {
         name: "Reference",
         desc: "Other (manual configuration)",
-        contents: include_str!("reference.toml"),
+        contents: include_str!("config/reference.toml"),
     },
 ];
