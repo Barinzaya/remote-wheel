@@ -10,8 +10,8 @@ use super::ik::{solve_tri, AngularConstraint, Chain, Link, TriSettings};
 use super::TrackingData;
 
 pub(super) struct AvatarState {
-    left_hand_pose: Option<(Vec3, Quat)>,
-    right_hand_pose: Option<(Vec3, Quat)>,
+    left_hand_pose: Option<(Vec3A, Quat)>,
+    right_hand_pose: Option<(Vec3A, Quat)>,
 
     poses: Vec<(Bone, Quat)>,
 }
@@ -122,7 +122,7 @@ impl AvatarState {
                     ],
                     data: tracking,
                 },
-                pos.into(),
+                pos,
                 rot,
             );
         }
@@ -155,7 +155,7 @@ impl AvatarState {
                     ],
                     data: tracking,
                 },
-                pos.into(),
+                pos,
                 rot,
             );
         }
@@ -166,16 +166,14 @@ impl AvatarState {
     }
 
     pub fn update(&mut self, _: f64, devices: &HashMap<DefaultAtom, Device>) {
-        let mut left_hand_pose = None;
-        let mut right_hand_pose = None;
-
-        for device in devices.values() {
-            left_hand_pose = left_hand_pose.or_else(|| device.pose(Bone::LeftHand));
-            right_hand_pose = right_hand_pose.or_else(|| device.pose(Bone::RightHand));
-        }
-
-        self.left_hand_pose = left_hand_pose;
-        self.right_hand_pose = right_hand_pose;
+        self.left_hand_pose = devices
+            .values()
+            .filter_map(|d| d.pose(Bone::LeftHand))
+            .next();
+        self.right_hand_pose = devices
+            .values()
+            .filter_map(|d| d.pose(Bone::RightHand))
+            .next();
     }
 }
 

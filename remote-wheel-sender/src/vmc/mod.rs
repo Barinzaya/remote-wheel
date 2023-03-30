@@ -86,6 +86,10 @@ pub async fn run(
                 };
 
                 if tracking.update(&packet) {
+                    for device in devices.values_mut() {
+                        device.update(0.0, &tracking);
+                    }
+
                     avatar.update(0.0, &devices);
                     avatar.apply_to(&mut tracking);
                     apply_device_trackers(devices.values(), &mut tracking);
@@ -193,7 +197,7 @@ pub async fn run(
 }
 
 #[derive(Debug)]
-struct TrackingData {
+pub struct TrackingData {
     root: TrackingPoint,
     blendshapes: HashMap<DefaultAtom, (f32, u32)>,
     devices: HashMap<(Device, DefaultAtom), (TrackingPoint, usize)>,
@@ -208,7 +212,7 @@ struct TrackingData {
 }
 
 #[derive(Clone, Copy, Debug, Default)]
-struct TrackingPoint {
+pub struct TrackingPoint {
     pos: glam::Vec3A,
     rot: glam::Quat,
 }

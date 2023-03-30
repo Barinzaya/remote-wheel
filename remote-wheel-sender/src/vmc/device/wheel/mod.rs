@@ -1,10 +1,12 @@
-use anyhow::{ensure, Error as AnyError, Result as AnyResult};
-use glam::{EulerRot, Quat, Vec3, Vec3A};
+use anyhow::{ensure, Context as _, Error as AnyError, Result as AnyResult};
+use glam::{EulerRot, Quat, Vec3A};
 use serde::Deserialize;
-use std::f32::consts::TAU;
 use string_cache::DefaultAtom;
 
-use crate::vmc::bone::Bone;
+mod technique;
+
+use crate::vmc::{bone::Bone, TrackingData};
+use technique::{Technique, TechniqueConfig};
 
 #[derive(Debug)]
 pub struct Wheel {
@@ -15,6 +17,8 @@ pub struct Wheel {
     angle: f32,
     base_rot: Quat,
     tracker: Option<DefaultAtom>,
+
+    technique: Technique,
 }
 
 #[derive(Debug, Deserialize)]
@@ -24,6 +28,7 @@ pub struct WheelConfig {
     rotation: [f32; 3],
     radius: f32,
     tracker: Option<DefaultAtom>,
+    technique: TechniqueConfig,
 }
 
 impl TryFrom<WheelConfig> for Wheel {
@@ -47,6 +52,11 @@ impl TryFrom<WheelConfig> for Wheel {
             angle: 0.0,
             base_rot: rot,
             tracker: config.tracker,
+
+            technique: config
+                .technique
+                .try_into()
+                .context("Failed to initialize driving wheel handling technique")?,
         })
     }
 }
@@ -58,31 +68,14 @@ impl Default for WheelConfig {
             rotation: [0.0, 0.0, 0.0],
             radius: 0.17,
             tracker: None,
+            technique: TechniqueConfig::default(),
         }
     }
 }
 
 impl Wheel {
-    pub fn pose(&self, bone: Bone) -> Option<(Vec3, Quat)> {
-        match bone {
-            Bone::LeftHand => {
-                let grab_pos = self.pos + self.rot * Vec3A::NEG_X * self.radius;
-                Some((
-                    grab_pos.into(),
-                    self.rot * Quat::from_euler(EulerRot::YXZ, 0.25 * TAU, -0.25 * TAU, 0.0),
-                ))
-            }
-
-            Bone::RightHand => {
-                let grab_pos = self.pos + self.rot * Vec3A::X * self.radius;
-                Some((
-                    grab_pos.into(),
-                    self.rot * Quat::from_euler(EulerRot::YXZ, -0.25 * TAU, -0.25 * TAU, 0.0),
-                ))
-            }
-
-            _ => None,
-        }
+    pub fn pose(&self, bone: Bone) -> Option<(Vec3A, Quat)> {
+        self.technique.pose(bone, self)
     }
 
     pub fn set_value(&mut self, value: f32) {
@@ -94,5 +87,9 @@ impl Wheel {
         if let Some(ref tracker) = self.tracker.clone() {
             f(tracker.clone(), self.pos, self.rot);
         }
+    }
+
+    pub fn update(&mut self, dt: f64, tracking: &TrackingData) {
+        self.technique.update(dt, tracking)
     }
 }

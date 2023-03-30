@@ -1,9 +1,9 @@
 use anyhow::{Error as AnyError, Result as AnyResult};
-use glam::{Quat, Vec3, Vec3A};
+use glam::{Quat, Vec3A};
 use serde::Deserialize;
 use string_cache::DefaultAtom;
 
-use super::bone::Bone;
+use super::{bone::Bone, TrackingData};
 
 mod wheel;
 pub use wheel::{Wheel, WheelConfig};
@@ -21,9 +21,9 @@ enum DeviceConfig {
 }
 
 impl Device {
-    pub fn pose(&self, hand: Bone) -> Option<(Vec3, Quat)> {
+    pub fn pose(&self, bone: Bone) -> Option<(Vec3A, Quat)> {
         match *self {
-            Device::Wheel(ref w) => w.pose(hand),
+            Device::Wheel(ref w) => w.pose(bone),
         }
     }
 
@@ -36,6 +36,12 @@ impl Device {
     pub fn trackers(&self, f: impl FnMut(DefaultAtom, Vec3A, Quat)) {
         match *self {
             Device::Wheel(ref w) => w.trackers(f),
+        }
+    }
+
+    pub fn update(&mut self, dt: f64, tracking: &TrackingData) {
+        match *self {
+            Device::Wheel(ref mut w) => w.update(dt, tracking),
         }
     }
 }
