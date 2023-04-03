@@ -66,7 +66,7 @@ pub enum Bone {
     RightLittleDistal,
 }
 
-static BONES: phf::OrderedMap<&str, Bone> = phf::phf_ordered_map! {
+static BONES: phf::Map<&str, Bone> = phf::phf_map! {
     "Hips" => Bone::Hips,
     "LeftUpperLeg" => Bone::LeftUpperLeg,
     "RightUpperLeg" => Bone::RightUpperLeg,
@@ -258,7 +258,7 @@ impl Bone {
     pub fn iter(
     ) -> impl 'static + Iterator<Item = Self> + Clone + DoubleEndedIterator + ExactSizeIterator
     {
-        BONES.values().copied()
+        (0u8..Self::NUM as u8).map(|i| Self::try_from(i).unwrap())
     }
 
     pub const fn mask(&self) -> BoneMask {
@@ -414,7 +414,7 @@ pub struct BoneMask(u64);
 
 impl BoneMask {
     pub const fn all() -> BoneMask {
-        BoneMask((1u64 << Bone::NUM).wrapping_sub(1))
+        BoneMask((1u64 << Bone::NUM) - 1)
     }
 
     pub const fn empty() -> BoneMask {
