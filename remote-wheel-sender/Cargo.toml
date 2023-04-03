@@ -12,7 +12,7 @@ console = { version = "0.15", features = [], default-features = false }
 ctrlc = "3"
 dialoguer = { version = "0.10", features = [], default-features = false }
 futures = "0.3"
-glam = { version = "0.23", optional = true }
+glam = { version = "0.23", features = ["debug-glam-assert", "fast-math"], optional = true }
 hashbrown = { version = "0.13", features = ["serde"] }
 linear-map = { version = "1", features = ["serde_impl"], optional = true }
 log = { version = "0.4", features = ["release_max_level_info"] }
