@@ -320,15 +320,15 @@ impl<'d> Link for TrackingLink<'d> {
         *self.constraint
     }
 
-    fn pos(&mut self) -> glam::Vec3A {
+    fn pos(&mut self) -> Vec3A {
         self.state().0
     }
 
-    fn rot(&mut self) -> glam::Quat {
+    fn rot(&mut self) -> Quat {
         self.state().1
     }
 
-    fn set_rot(&mut self, new_rot: glam::Quat) {
+    fn set_rot(&mut self, new_rot: Quat) {
         self.data.set_global_rot(self.bone, new_rot);
     }
 
