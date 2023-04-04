@@ -3,7 +3,10 @@ use glam::{Quat, Vec3A};
 use serde::Deserialize;
 use string_cache::DefaultAtom;
 
-use super::{avatar::Pose, bone::Bone};
+use super::{
+    avatar::Pose,
+    bone::{Bone, Limb},
+};
 
 mod wheel;
 pub use wheel::{Wheel, WheelConfig};
@@ -20,10 +23,23 @@ enum DeviceConfig {
     Wheel(WheelConfig),
 }
 
+#[allow(unused)]
+#[derive(Clone, Debug)]
+pub enum ForwardPose {
+    Global(Quat),
+    Local(Quat),
+}
+
 impl Device {
-    pub fn pose(&self, bone: Bone) -> Option<(Vec3A, Quat)> {
+    pub fn pose_forward(&self, f: impl FnMut(Bone, f32, ForwardPose)) {
         match *self {
-            Device::Wheel(ref w) => w.pose(bone),
+            Device::Wheel(ref w) => w.pose_forward(f),
+        }
+    }
+
+    pub fn pose_inverse(&self, pose: &Pose, f: impl FnMut(Limb, f32, Vec3A, Quat)) {
+        match *self {
+            Device::Wheel(ref w) => w.pose_inverse(pose, f),
         }
     }
 

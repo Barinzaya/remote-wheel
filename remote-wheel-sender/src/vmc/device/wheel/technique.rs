@@ -2,7 +2,11 @@ use anyhow::{Error as AnyError, Result as AnyResult};
 use glam::{Quat, Vec3A};
 use serde::Deserialize;
 
-use crate::vmc::{avatar::Pose, bone::Bone, device::Wheel};
+use crate::vmc::{
+    avatar::Pose,
+    bone::{Bone, Limb},
+    device::{ForwardPose, Wheel},
+};
 
 mod glue;
 
@@ -18,9 +22,15 @@ pub enum TechniqueConfig {
 }
 
 impl Technique {
-    pub fn pose(&self, bone: Bone, wheel: &Wheel) -> Option<(Vec3A, Quat)> {
+    pub fn pose_forward(&self, wheel: &Wheel, f: impl FnMut(Bone, f32, ForwardPose)) {
         match *self {
-            Technique::Glue(ref g) => g.pose(bone, wheel),
+            Technique::Glue(ref g) => g.pose_forward(wheel, f),
+        }
+    }
+
+    pub fn pose_inverse(&self, pose: &Pose, wheel: &Wheel, f: impl FnMut(Limb, f32, Vec3A, Quat)) {
+        match *self {
+            Technique::Glue(ref g) => g.pose_inverse(pose, wheel, f),
         }
     }
 

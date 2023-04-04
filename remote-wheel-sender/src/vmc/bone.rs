@@ -3,7 +3,10 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 use enumset::{EnumSet, EnumSetIter, EnumSetType};
+use glam::{EulerRot, Vec3, Vec3A};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+
+use super::ik::AngularConstraint;
 
 #[derive(Debug, EnumSetType, IntoPrimitive, Ord, PartialOrd, TryFromPrimitive)]
 #[repr(u8)]
@@ -405,3 +408,82 @@ impl Display for FromStrErr {
 }
 
 impl Error for FromStrErr {}
+
+#[derive(Debug, EnumSetType, IntoPrimitive, Ord, PartialOrd, TryFromPrimitive)]
+#[repr(u8)]
+pub enum Limb {
+    LeftHand,
+    RightHand,
+}
+
+impl Limb {
+    pub const NUM: usize = Self::RightHand as u8 as usize + 1;
+
+    pub const fn angular_constraints(&self) -> &'static [AngularConstraint] {
+        match *self {
+            Limb::LeftHand => &[
+                AngularConstraint::None,
+                AngularConstraint::Euler(
+                    EulerRot::YZX,
+                    (-1.05, 2.36), // Yaw; -60 to 135 deg
+                    (-1.31, 1.59), // Pitch; -75 to 90 deg
+                    (-0.79, 0.79), // Roll; -45 to 45 deg
+                ),
+                AngularConstraint::Hinge(Vec3::Y, (0.0, 2.62)), // 0 to 150 deg
+                AngularConstraint::None,
+            ],
+
+            Limb::RightHand => &[
+                AngularConstraint::None,
+                AngularConstraint::Euler(
+                    EulerRot::YZX,
+                    (-2.36, 1.05), // Yaw; -135 to 60 deg
+                    (-1.31, 1.59), // Pitch; -75 to 90 deg
+                    (-0.79, 0.79), // Roll; -45 to 45 deg
+                ),
+                AngularConstraint::Hinge(Vec3::NEG_Y, (0.0, 2.62)), // 0 to 150 deg
+                AngularConstraint::None,
+            ],
+        }
+    }
+
+    pub const fn bones(&self) -> &'static [Bone] {
+        match *self {
+            Limb::LeftHand => &[
+                Bone::LeftShoulder,
+                Bone::LeftUpperArm,
+                Bone::LeftLowerArm,
+                Bone::LeftHand,
+            ],
+
+            Limb::RightHand => &[
+                Bone::RightShoulder,
+                Bone::RightUpperArm,
+                Bone::RightLowerArm,
+                Bone::RightHand,
+            ],
+        }
+    }
+
+    pub const fn elbow_axis(&self) -> Vec3A {
+        match *self {
+            Limb::LeftHand => Vec3A::Y,
+            Limb::RightHand => Vec3A::NEG_Y,
+        }
+    }
+
+    pub const fn end_bone(&self) -> Bone {
+        match *self {
+            Limb::LeftHand => Bone::LeftHand,
+            Limb::RightHand => Bone::RightHand,
+        }
+    }
+
+    pub fn iter() -> EnumSetIter<Limb> {
+        EnumSet::all().into_iter()
+    }
+
+    pub fn mask(&self) -> EnumSet<Limb> {
+        EnumSet::from(*self)
+    }
+}

@@ -5,8 +5,13 @@ use string_cache::DefaultAtom;
 
 mod technique;
 
-use crate::vmc::{avatar::Pose, bone::Bone};
+use crate::vmc::{
+    avatar::Pose,
+    bone::{Bone, Limb},
+};
 use technique::{Technique, TechniqueConfig};
+
+use super::ForwardPose;
 
 #[derive(Debug)]
 pub struct Wheel {
@@ -74,8 +79,12 @@ impl Default for WheelConfig {
 }
 
 impl Wheel {
-    pub fn pose(&self, bone: Bone) -> Option<(Vec3A, Quat)> {
-        self.technique.pose(bone, self)
+    pub fn pose_forward(&self, f: impl FnMut(Bone, f32, ForwardPose)) {
+        self.technique.pose_forward(self, f)
+    }
+
+    pub fn pose_inverse(&self, pose: &Pose, f: impl FnMut(Limb, f32, Vec3A, Quat)) {
+        self.technique.pose_inverse(pose, self, f)
     }
 
     pub fn set_value(&mut self, value: f32) {

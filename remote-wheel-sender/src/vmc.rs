@@ -40,7 +40,7 @@ pub async fn run(
         .with_context(|| format!("Failed to bind to UDP socket {}", config.input.address))?;
     let mut recv_buffer = vec![0u8; 16384];
 
-    let mut avatar = AvatarState::new();
+    let avatar = AvatarState::new();
     let mut devices = config.device;
     let mut packets = PacketBuffer::new();
     let mut tracking = TrackingData::new();
@@ -92,13 +92,12 @@ pub async fn run(
                         device.update(0.0, &tracking.pose);
                     }
 
-                    avatar.update(0.0, &devices);
-                    avatar.apply_to(&mut tracking.pose);
+                    avatar.apply_to(&devices, &mut tracking.pose);
                     apply_device_trackers(devices.values(), &mut tracking);
                     packets.apply_data(&tracking);
 
                     let mut cursor = Cursor::new(&mut recv_buffer);
-                    let data_len = packets.encode(&mut cursor)
+                    let data_len = packets.encode(&mut rosc::encoder::WriteOutput(&mut cursor))
                         .context("Failed to encode VMC bundle")?;
                     let data = &recv_buffer[..data_len];
 

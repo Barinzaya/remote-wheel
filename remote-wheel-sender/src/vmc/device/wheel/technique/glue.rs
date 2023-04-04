@@ -6,7 +6,11 @@ use serde::{
     Deserialize, Deserializer,
 };
 
-use crate::vmc::{avatar::Pose, bone::Bone, device::Wheel};
+use crate::vmc::{
+    avatar::Pose,
+    bone::{Bone, Limb},
+    device::{ForwardPose, Wheel},
+};
 
 #[derive(Debug)]
 pub struct Technique {
@@ -33,17 +37,97 @@ fn right_hand_default() -> f32 {
 }
 
 impl Technique {
-    pub fn pose(&self, bone: Bone, wheel: &Wheel) -> Option<(Vec3A, Quat)> {
-        let (pos, yaw) = match bone {
-            Bone::LeftHand => (self.left_hand_angle, 0.25 * TAU),
-            Bone::RightHand => (self.right_hand_angle, -0.25 * TAU),
-            _ => return None,
-        };
+    pub fn pose_forward(&self, _: &Wheel, mut f: impl FnMut(Bone, f32, ForwardPose)) {
+        let bones = [
+            (Bone::LeftIndexProximal, Quat::from_rotation_z(0.1 * TAU)),
+            (
+                Bone::LeftIndexIntermediate,
+                Quat::from_rotation_z(0.25 * TAU),
+            ),
+            (Bone::LeftIndexDistal, Quat::from_rotation_z(0.1 * TAU)),
+            (Bone::LeftMiddleProximal, Quat::from_rotation_z(0.1 * TAU)),
+            (
+                Bone::LeftMiddleIntermediate,
+                Quat::from_rotation_z(0.25 * TAU),
+            ),
+            (Bone::LeftMiddleDistal, Quat::from_rotation_z(0.1 * TAU)),
+            (Bone::LeftRingProximal, Quat::from_rotation_z(0.1 * TAU)),
+            (
+                Bone::LeftRingIntermediate,
+                Quat::from_rotation_z(0.25 * TAU),
+            ),
+            (Bone::LeftRingDistal, Quat::from_rotation_z(0.1 * TAU)),
+            (Bone::LeftLittleProximal, Quat::from_rotation_z(0.1 * TAU)),
+            (
+                Bone::LeftLittleIntermediate,
+                Quat::from_rotation_z(0.25 * TAU),
+            ),
+            (Bone::LeftLittleDistal, Quat::from_rotation_z(0.1 * TAU)),
+            (Bone::RightIndexProximal, Quat::from_rotation_z(-0.1 * TAU)),
+            (
+                Bone::RightIndexIntermediate,
+                Quat::from_rotation_z(-0.25 * TAU),
+            ),
+            (Bone::RightIndexDistal, Quat::from_rotation_z(-0.1 * TAU)),
+            (Bone::RightMiddleProximal, Quat::from_rotation_z(-0.1 * TAU)),
+            (
+                Bone::RightMiddleIntermediate,
+                Quat::from_rotation_z(-0.25 * TAU),
+            ),
+            (Bone::RightMiddleDistal, Quat::from_rotation_z(-0.1 * TAU)),
+            (Bone::RightRingProximal, Quat::from_rotation_z(-0.1 * TAU)),
+            (
+                Bone::RightRingIntermediate,
+                Quat::from_rotation_z(-0.25 * TAU),
+            ),
+            (Bone::RightRingDistal, Quat::from_rotation_z(-0.1 * TAU)),
+            (Bone::RightLittleProximal, Quat::from_rotation_z(-0.1 * TAU)),
+            (
+                Bone::RightLittleIntermediate,
+                Quat::from_rotation_z(-0.25 * TAU),
+            ),
+            (Bone::RightLittleDistal, Quat::from_rotation_z(-0.1 * TAU)),
+            (
+                Bone::LeftThumbProximal,
+                Quat::from_euler(EulerRot::YZX, -0.02 * TAU, 0.0, 0.08 * TAU),
+            ),
+            (
+                Bone::LeftThumbIntermediate,
+                Quat::from_rotation_y(-0.08 * TAU),
+            ),
+            (Bone::LeftThumbDistal, Quat::from_rotation_y(-0.03 * TAU)),
+            (
+                Bone::RightThumbProximal,
+                Quat::from_euler(EulerRot::YZX, 0.02 * TAU, 0.0, 0.08 * TAU),
+            ),
+            (
+                Bone::RightThumbIntermediate,
+                Quat::from_rotation_y(0.08 * TAU),
+            ),
+            (Bone::RightThumbDistal, Quat::from_rotation_y(0.03 * TAU)),
+        ];
 
-        let local_pos = wheel.radius * Vec3A::from((Vec2::from_angle(pos), 0.0));
-        let local_rot = Quat::from_euler(EulerRot::YXZ, yaw, yaw - yaw.signum() * pos, 0.0);
+        for (bone, rot) in bones {
+            f(bone, 1.0, ForwardPose::Local(rot));
+        }
+    }
 
-        Some((wheel.pos + wheel.rot * local_pos, wheel.rot * local_rot))
+    pub fn pose_inverse(&self, _: &Pose, wheel: &Wheel, mut f: impl FnMut(Limb, f32, Vec3A, Quat)) {
+        let hands = [
+            (Limb::LeftHand, self.left_hand_angle, 0.25 * TAU),
+            (Limb::RightHand, self.right_hand_angle, -0.25 * TAU),
+        ];
+
+        for (limb, angle, yaw) in hands {
+            let local_pos = wheel.radius * Vec3A::from((Vec2::from_angle(angle), 0.0));
+            let local_rot = Quat::from_euler(EulerRot::YXZ, yaw, yaw - yaw.signum() * angle, 0.0);
+            f(
+                limb,
+                1.0,
+                wheel.pos + wheel.rot * local_pos,
+                wheel.rot * local_rot,
+            );
+        }
     }
 
     pub fn update(&mut self, dt: f64, tracking: &Pose) {
