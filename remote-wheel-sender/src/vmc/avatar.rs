@@ -191,7 +191,7 @@ pub struct PoseBone {
     local_pos: Vec3A,
     local_rot: Quat,
 
-    global_pos: Vec3,
+    global_pos: Vec3A,
     global_rot: Quat,
 }
 
@@ -218,13 +218,13 @@ impl Pose {
             let new_pos = parent_pos + parent_rot * pose_bone.local_pos;
             let new_rot = parent_rot * pose_bone.local_rot;
 
-            pose_bone.global_pos = new_pos.into();
+            pose_bone.global_pos = new_pos;
             pose_bone.global_rot = new_rot;
 
             (new_pos, new_rot)
         } else {
             let pose_bone = &self.bones[bone as u8 as usize];
-            (pose_bone.global_pos.into(), pose_bone.global_rot)
+            (pose_bone.global_pos, pose_bone.global_rot)
         }
     }
 
@@ -244,7 +244,7 @@ impl Pose {
             .unwrap_or((self.root_pos, self.root_rot));
 
         let pose_bone = &mut self.bones[bone as u8 as usize];
-        pose_bone.global_pos = Vec3::from(parent_pos + parent_rot * pose_bone.local_pos);
+        pose_bone.global_pos = parent_pos + parent_rot * pose_bone.local_pos;
         pose_bone.global_rot = new_rot;
         pose_bone.local_rot = parent_rot.inverse() * new_rot;
 
@@ -278,7 +278,7 @@ impl PoseBone {
             local_pos: Vec3A::ZERO,
             local_rot: Quat::IDENTITY,
 
-            global_pos: Vec3::ZERO,
+            global_pos: Vec3A::ZERO,
             global_rot: Quat::IDENTITY,
         }
     }
