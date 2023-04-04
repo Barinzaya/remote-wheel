@@ -11,6 +11,7 @@ async-broadcast = "0.5"
 console = { version = "0.15", features = [], default-features = false }
 ctrlc = "3"
 dialoguer = { version = "0.10", features = [], default-features = false }
+enumset = { version = "1", optional = true }
 futures = "0.3"
 glam = { version = "0.23", features = ["debug-glam-assert", "fast-math"], optional = true }
 hashbrown = { version = "0.13", features = ["serde"] }
@@ -30,4 +31,4 @@ toml = { version = "0.7", features = ["parse"], default-features = false }
 [features]
 default = ["osc", "vmc"]
 osc = ["linear-map", "rosc"]
-vmc = ["glam", "num_enum", "phf", "rosc"]
+vmc = ["enumset", "glam", "num_enum", "phf", "rosc"]

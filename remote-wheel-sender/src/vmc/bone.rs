@@ -2,11 +2,10 @@ use std::error::Error;
 use std::fmt::Display;
 use std::str::FromStr;
 
+use enumset::{EnumSet, EnumSetIter, EnumSetType};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
-#[derive(
-    Clone, Copy, Debug, Eq, Hash, IntoPrimitive, Ord, PartialEq, PartialOrd, TryFromPrimitive,
-)]
+#[derive(Debug, EnumSetType, IntoPrimitive, Ord, PartialOrd, TryFromPrimitive)]
 #[repr(u8)]
 pub enum Bone {
     Hips,
@@ -243,26 +242,24 @@ const DESCENDANTS: [u64; Bone::NUM] = [
 impl Bone {
     pub const NUM: usize = Self::RightLittleDistal as u8 as usize + 1;
 
-    pub const fn affected(&self) -> BoneMask {
-        self.descendants().with(*self)
+    pub fn affected(&self) -> EnumSet<Bone> {
+        self.descendants() | *self
     }
 
-    pub const fn children(&self) -> BoneMask {
-        BoneMask(CHILDREN[*self as u8 as usize])
+    pub fn children(&self) -> EnumSet<Bone> {
+        EnumSet::from_u64(CHILDREN[*self as u8 as usize])
     }
 
-    pub const fn descendants(&self) -> BoneMask {
-        BoneMask(DESCENDANTS[*self as u8 as usize])
+    pub fn descendants(&self) -> EnumSet<Bone> {
+        EnumSet::from_u64(DESCENDANTS[*self as u8 as usize])
     }
 
-    pub fn iter(
-    ) -> impl 'static + Iterator<Item = Self> + Clone + DoubleEndedIterator + ExactSizeIterator
-    {
-        (0u8..Self::NUM as u8).map(|i| Self::try_from(i).unwrap())
+    pub fn iter() -> EnumSetIter<Bone> {
+        EnumSet::all().into_iter()
     }
 
-    pub const fn mask(&self) -> BoneMask {
-        BoneMask::empty().with(*self)
+    pub fn mask(&self) -> EnumSet<Bone> {
+        EnumSet::from(*self)
     }
 
     pub const fn name(&self) -> &'static str {
@@ -408,177 +405,3 @@ impl Display for FromStrErr {
 }
 
 impl Error for FromStrErr {}
-
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct BoneMask(u64);
-
-impl BoneMask {
-    pub const fn all() -> BoneMask {
-        BoneMask((1u64 << Bone::NUM) - 1)
-    }
-
-    pub const fn empty() -> BoneMask {
-        BoneMask(0)
-    }
-
-    pub fn clear(&mut self) {
-        self.0 = 0;
-    }
-
-    pub const fn contains(&self, bone: &Bone) -> bool {
-        let bit = 1 << *bone as u8;
-        (self.0 & bit) == 0
-    }
-
-    pub fn insert(&mut self, bone: Bone) -> bool {
-        let bit = 1 << bone as u8;
-
-        let old = self.0;
-        self.0 |= bit;
-
-        (old & bit) == 0
-    }
-
-    pub const fn into_raw(self) -> u64 {
-        self.0
-    }
-
-    pub const fn is_disjoint(&self, other: &BoneMask) -> bool {
-        (self.0 & other.0) == 0
-    }
-
-    pub const fn is_empty(&self) -> bool {
-        self.0 == 0
-    }
-
-    pub const fn is_subset(&self, other: &BoneMask) -> bool {
-        (self.0 & other.0) == self.0
-    }
-
-    pub const fn is_superset(&self, other: &BoneMask) -> bool {
-        (self.0 | other.0) == self.0
-    }
-
-    pub const fn iter(&self) -> BoneMaskIter {
-        BoneMaskIter(self.0)
-    }
-
-    pub const fn len(&self) -> usize {
-        self.0.count_ones() as usize
-    }
-
-    pub fn remove(&mut self, bone: &Bone) -> bool {
-        let bit = 1 << *bone as u8;
-
-        let old = self.0;
-        self.0 |= bit;
-
-        (old & bit) == 0
-    }
-
-    #[must_use]
-    pub const fn difference(&self, other: &BoneMask) -> BoneMask {
-        BoneMask(self.0 & !other.0)
-    }
-
-    #[must_use]
-    pub const fn intersection(&self, other: &BoneMask) -> BoneMask {
-        BoneMask(self.0 & other.0)
-    }
-
-    #[must_use]
-    pub const fn symmetric_difference(&self, other: &BoneMask) -> BoneMask {
-        BoneMask(self.0 ^ other.0)
-    }
-
-    #[must_use]
-    pub const fn union(&self, other: &BoneMask) -> BoneMask {
-        BoneMask(self.0 | other.0)
-    }
-
-    #[must_use]
-    pub const fn with(self, bone: Bone) -> BoneMask {
-        let bit = 1 << bone as u8;
-        BoneMask(self.0 | bit)
-    }
-
-    #[must_use]
-    pub const fn without(self, bone: Bone) -> BoneMask {
-        let bit = 1 << bone as u8;
-        BoneMask(self.0 & !bit)
-    }
-}
-
-impl Extend<Bone> for BoneMask {
-    fn extend<I: IntoIterator<Item = Bone>>(&mut self, iter: I) {
-        for bone in iter {
-            self.insert(bone);
-        }
-    }
-}
-
-impl<'b> Extend<&'b Bone> for BoneMask {
-    fn extend<I: IntoIterator<Item = &'b Bone>>(&mut self, iter: I) {
-        self.extend(iter.into_iter().copied())
-    }
-}
-
-impl From<Bone> for BoneMask {
-    fn from(value: Bone) -> Self {
-        BoneMask(1 << value as u8)
-    }
-}
-
-impl<const N: usize> From<[Bone; N]> for BoneMask {
-    fn from(value: [Bone; N]) -> Self {
-        Self::from_iter(value)
-    }
-}
-
-impl FromIterator<Bone> for BoneMask {
-    fn from_iter<I: IntoIterator<Item = Bone>>(iter: I) -> Self {
-        let mut mask = BoneMask::empty();
-        mask.extend(iter);
-        mask
-    }
-}
-
-impl IntoIterator for BoneMask {
-    type IntoIter = BoneMaskIter;
-    type Item = Bone;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter()
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct BoneMaskIter(u64);
-
-impl Iterator for BoneMaskIter {
-    type Item = Bone;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        (self.0 != 0).then(|| {
-            let bit = self.0.trailing_zeros();
-            self.0 &= !(1 << bit);
-            Bone::try_from(bit as u8).expect("BoneMask contains an invalid bone!")
-        })
-    }
-}
-
-impl DoubleEndedIterator for BoneMaskIter {
-    fn next_back(&mut self) -> Option<Self::Item> {
-        (self.0 != 0).then(|| {
-            let bit = 63 - self.0.leading_zeros();
-            self.0 &= !(1 << bit);
-            Bone::try_from(bit as u8).expect("BoneMask contains an invalid bone!")
-        })
-    }
-}
-
-impl ExactSizeIterator for BoneMaskIter {
-    fn len(&self) -> usize {
-        self.0.count_ones() as usize
-    }
-}

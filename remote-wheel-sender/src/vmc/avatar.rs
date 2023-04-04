@@ -1,10 +1,11 @@
 use std::f32::consts::TAU;
 
+use enumset::EnumSet;
 use glam::{EulerRot, Quat, Vec3, Vec3A};
 use hashbrown::HashMap;
 use string_cache::DefaultAtom;
 
-use super::bone::{Bone, BoneMask};
+use super::bone::Bone;
 use super::device::Device;
 use super::ik::{solve_tri, AngularConstraint, Chain, Link, TriSettings};
 
@@ -182,7 +183,7 @@ pub struct Pose {
     root_rot: Quat,
 
     bones: Vec<PoseBone>,
-    globalized: BoneMask,
+    globalized: EnumSet<Bone>,
 }
 
 #[derive(Clone, Debug)]
@@ -201,7 +202,7 @@ impl Pose {
             root_rot: Quat::IDENTITY,
 
             bones: vec![PoseBone::new(); Bone::NUM],
-            globalized: BoneMask::all(),
+            globalized: EnumSet::all(),
         }
     }
 
@@ -247,15 +248,12 @@ impl Pose {
         pose_bone.global_rot = new_rot;
         pose_bone.local_rot = parent_rot.inverse() * new_rot;
 
-        self.globalized = self
-            .globalized
-            .union(&bone.mask())
-            .difference(&bone.descendants());
+        self.globalized = (self.globalized | bone) - bone.descendants();
     }
 
     pub fn set_local_rot(&mut self, bone: Bone, new_rot: Quat) {
         self.bones[bone as u8 as usize].local_rot = new_rot;
-        self.globalized = self.globalized.difference(&bone.affected());
+        self.globalized -= bone.affected();
     }
 
     pub fn set_local_transform(&mut self, bone: Bone, new_pos: Vec3A, new_rot: Quat) {
@@ -263,7 +261,7 @@ impl Pose {
         pose_bone.local_pos = new_pos;
         pose_bone.local_rot = new_rot;
 
-        self.globalized = self.globalized.difference(&bone.affected());
+        self.globalized -= bone.affected();
     }
 
     pub fn set_root_transform(&mut self, new_pos: Vec3A, new_rot: Quat) {
