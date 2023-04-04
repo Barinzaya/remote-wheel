@@ -2,7 +2,7 @@ use anyhow::{Error as AnyError, Result as AnyResult};
 use glam::{Quat, Vec3A};
 use serde::Deserialize;
 
-use crate::vmc::{bone::Bone, device::Wheel, TrackingData};
+use crate::vmc::{avatar::Pose, bone::Bone, device::Wheel};
 
 mod glue;
 
@@ -24,7 +24,7 @@ impl Technique {
         }
     }
 
-    pub fn update(&mut self, dt: f64, tracking: &TrackingData) {
+    pub fn update(&mut self, dt: f64, tracking: &Pose) {
         match *self {
             Technique::Glue(ref mut g) => g.update(dt, tracking),
         }

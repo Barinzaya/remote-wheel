@@ -6,7 +6,7 @@ use serde::{
     Deserialize, Deserializer,
 };
 
-use crate::vmc::{bone::Bone, device::Wheel, TrackingData};
+use crate::vmc::{avatar::Pose, bone::Bone, device::Wheel};
 
 #[derive(Debug)]
 pub struct Technique {
@@ -46,7 +46,7 @@ impl Technique {
         Some((wheel.pos + wheel.rot * local_pos, wheel.rot * local_rot))
     }
 
-    pub fn update(&mut self, dt: f64, tracking: &TrackingData) {
+    pub fn update(&mut self, dt: f64, tracking: &Pose) {
         let _ = (dt, tracking);
     }
 }

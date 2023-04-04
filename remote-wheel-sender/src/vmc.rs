@@ -14,17 +14,19 @@ use std::time::{Duration, Instant};
 use anyhow::{bail, ensure, Context as _, Result as AnyResult};
 use async_broadcast::{Receiver as BroadcastRx, RecvError as BroadcastRxErr};
 use futures::prelude::*;
-use glam::Quat;
+use glam::{Quat, Vec3A};
 use hashbrown::HashMap;
 use smol::net::UdpSocket;
 use string_cache::DefaultAtom;
 
 use avatar::AvatarState;
-use bone::{Bone, BoneMask};
+use bone::Bone;
 pub use config::{AxisOutputConfig, ButtonOutputConfig, Config};
 
 use crate::config::MappingConfig;
 use crate::output::OutputEvent;
+
+use self::avatar::Pose;
 
 pub async fn run(
     config: Config,
@@ -87,11 +89,11 @@ pub async fn run(
 
                 if tracking.update(&packet) {
                     for device in devices.values_mut() {
-                        device.update(0.0, &tracking);
+                        device.update(0.0, &tracking.pose);
                     }
 
                     avatar.update(0.0, &devices);
-                    avatar.apply_to(&mut tracking);
+                    avatar.apply_to(&mut tracking.pose);
                     apply_device_trackers(devices.values(), &mut tracking);
                     packets.apply_data(&tracking);
 
@@ -198,14 +200,9 @@ pub async fn run(
 
 #[derive(Debug)]
 pub struct TrackingData {
-    root: TrackingPoint,
     blendshapes: HashMap<DefaultAtom, (f32, u32)>,
     devices: HashMap<(Device, DefaultAtom), (TrackingPoint, usize)>,
-
-    local_bones: Vec<TrackingPoint>,
-
-    global_bones: Vec<TrackingPoint>,
-    global_ready: BoneMask,
+    pose: Pose,
 
     time: f32,
     tracking: bool,
@@ -289,10 +286,10 @@ impl PacketBuffer {
     }
 
     fn apply_data(&mut self, tracking: &TrackingData) {
-        update_point(&tracking.root, &mut self.pre_packets[0]);
+        update_point(tracking.pose.root_transform(), &mut self.pre_packets[0]);
 
-        for (tracking, packet) in std::iter::zip(&tracking.local_bones, &mut self.bone_packets) {
-            update_point(tracking, packet);
+        for (bone, packet) in std::iter::zip(Bone::iter(), &mut self.bone_packets) {
+            update_point(tracking.pose.local_transform(bone), packet);
         }
 
         {
@@ -428,61 +425,13 @@ impl PacketBuffer {
 impl TrackingData {
     fn new() -> TrackingData {
         TrackingData {
-            root: TrackingPoint::default(),
             blendshapes: HashMap::new(),
             devices: HashMap::new(),
-
-            local_bones: Bone::iter().map(|_| TrackingPoint::default()).collect(),
-
-            global_bones: Bone::iter().map(|_| TrackingPoint::default()).collect(),
-            global_ready: BoneMask::all(),
+            pose: Pose::new(),
 
             time: -1.0,
             tracking: false,
         }
-    }
-
-    fn global_bone(&mut self, bone: Bone) -> TrackingPoint {
-        if self.global_ready.insert(bone) {
-            let local_point = self.local_bone(bone);
-            let parent_point = bone.parent().map_or(self.root, |b| self.global_bone(b));
-
-            self.global_bones[bone as u8 as usize] = TrackingPoint {
-                pos: parent_point.pos + parent_point.rot * local_point.pos,
-                rot: (parent_point.rot * local_point.rot).normalize(),
-            };
-        }
-
-        self.global_bones[bone as u8 as usize]
-    }
-
-    fn local_bone(&self, bone: Bone) -> TrackingPoint {
-        self.local_bones[bone as u8 as usize]
-    }
-
-    fn set_global_bone_rot(&mut self, bone: Bone, new_rot: Quat) {
-        self.global_ready = self.global_ready.difference(&bone.descendants());
-
-        let parent_point = bone.parent().map_or(self.root, |b| self.global_bone(b));
-
-        self.global_bones[bone as u8 as usize].rot = new_rot;
-        self.local_bones[bone as u8 as usize].rot =
-            (parent_point.rot.inverse() * new_rot).normalize();
-    }
-
-    fn set_local_bone(&mut self, bone: Bone, point: TrackingPoint) {
-        self.global_ready = self.global_ready.difference(&bone.affected());
-        self.local_bones[bone as u8 as usize] = point;
-    }
-
-    fn set_local_bone_rot(&mut self, bone: Bone, new_rot: Quat) {
-        self.global_ready = self.global_ready.difference(&bone.affected());
-        self.local_bones[bone as u8 as usize].rot = new_rot;
-    }
-
-    fn set_root(&mut self, point: TrackingPoint) {
-        self.global_ready.clear();
-        self.root = point;
     }
 
     fn update(&mut self, packet: &rosc::OscPacket) -> bool {
@@ -505,13 +454,13 @@ impl TrackingData {
                                 "Unexpected name of root (expected \"root\", got \"{}\").",
                                 name
                             );
-                            self.set_root(point);
+                            self.pose.set_root_transform(point.pos, point.rot);
                         }
 
                         "/VMC/Ext/Bone/Pos" => {
                             let (name, point) = message.arg_tracking()?;
                             let bone = Bone::from_str(name).context("Failed to parse bone")?;
-                            self.set_local_bone(bone, point);
+                            self.pose.set_local_transform(bone, point.pos, point.rot);
                         }
 
                         "/VMC/Ext/Con/Pos" => {
@@ -609,18 +558,18 @@ impl TrackingData {
     }
 }
 
-fn update_point(tracking: &TrackingPoint, packet: &mut rosc::OscPacket) {
+fn update_point((pos, rot): (Vec3A, Quat), packet: &mut rosc::OscPacket) {
     let rosc::OscPacket::Message(message) = packet else { unreachable!() };
     assert_eq!(message.args.len(), 8);
 
-    message.args[1] = rosc::OscType::Float(tracking.pos.x);
-    message.args[2] = rosc::OscType::Float(tracking.pos.y);
-    message.args[3] = rosc::OscType::Float(tracking.pos.z);
+    message.args[1] = rosc::OscType::Float(pos.x);
+    message.args[2] = rosc::OscType::Float(pos.y);
+    message.args[3] = rosc::OscType::Float(pos.z);
 
-    message.args[4] = rosc::OscType::Float(tracking.rot.x);
-    message.args[5] = rosc::OscType::Float(tracking.rot.y);
-    message.args[6] = rosc::OscType::Float(tracking.rot.z);
-    message.args[7] = rosc::OscType::Float(tracking.rot.w);
+    message.args[4] = rosc::OscType::Float(rot.x);
+    message.args[5] = rosc::OscType::Float(rot.y);
+    message.args[6] = rosc::OscType::Float(rot.z);
+    message.args[7] = rosc::OscType::Float(rot.w);
 }
 
 trait OscMessageExt {

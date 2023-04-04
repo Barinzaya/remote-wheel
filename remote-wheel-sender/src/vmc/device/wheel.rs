@@ -5,7 +5,7 @@ use string_cache::DefaultAtom;
 
 mod technique;
 
-use crate::vmc::{bone::Bone, TrackingData};
+use crate::vmc::{avatar::Pose, bone::Bone};
 use technique::{Technique, TechniqueConfig};
 
 #[derive(Debug)]
@@ -89,7 +89,7 @@ impl Wheel {
         }
     }
 
-    pub fn update(&mut self, dt: f64, tracking: &TrackingData) {
+    pub fn update(&mut self, dt: f64, tracking: &Pose) {
         self.technique.update(dt, tracking)
     }
 }

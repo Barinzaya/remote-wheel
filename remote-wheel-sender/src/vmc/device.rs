@@ -3,7 +3,7 @@ use glam::{Quat, Vec3A};
 use serde::Deserialize;
 use string_cache::DefaultAtom;
 
-use super::{bone::Bone, TrackingData};
+use super::{avatar::Pose, bone::Bone};
 
 mod wheel;
 pub use wheel::{Wheel, WheelConfig};
@@ -39,7 +39,7 @@ impl Device {
         }
     }
 
-    pub fn update(&mut self, dt: f64, tracking: &TrackingData) {
+    pub fn update(&mut self, dt: f64, tracking: &Pose) {
         match *self {
             Device::Wheel(ref mut w) => w.update(dt, tracking),
         }
