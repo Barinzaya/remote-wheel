@@ -1,3 +1,5 @@
+use std::cell::Cell;
+
 use enumset::EnumSet;
 use glam::{Quat, Vec3A, Vec4};
 use hashbrown::HashMap;
@@ -118,7 +120,7 @@ pub struct Pose {
     root_rot: Quat,
 
     bones: Vec<PoseBone>,
-    globalized: EnumSet<Bone>,
+    globalized: Cell<EnumSet<Bone>>,
 }
 
 #[derive(Clone, Debug)]
@@ -126,8 +128,8 @@ pub struct PoseBone {
     local_pos: Vec4,
     local_rot: Quat,
 
-    global_pos: Vec3A,
-    global_rot: Quat,
+    global_pos: Cell<Vec3A>,
+    global_rot: Cell<Quat>,
 }
 
 impl Pose {
@@ -137,29 +139,32 @@ impl Pose {
             root_rot: Quat::IDENTITY,
 
             bones: vec![PoseBone::new(); Bone::NUM],
-            globalized: EnumSet::all(),
+            globalized: Cell::new(EnumSet::all()),
         }
     }
 
-    pub fn global_transform(&mut self, bone: Bone) -> (Vec3A, Quat) {
-        if self.globalized.insert(bone) {
+    pub fn global_transform(&self, bone: Bone) -> (Vec3A, Quat) {
+        let mut global = self.globalized.get();
+        if global.insert(bone) {
+            self.globalized.set(global);
+
             let (parent_pos, parent_rot) = bone
                 .parent()
                 .map(|b| self.global_transform(b))
                 .unwrap_or((self.root_pos, self.root_rot));
 
-            let pose_bone = &mut self.bones[bone as u8 as usize];
+            let pose_bone = &self.bones[bone as u8 as usize];
 
             let new_pos = parent_pos + parent_rot * Vec3A::from(pose_bone.local_pos);
             let new_rot = parent_rot * pose_bone.local_rot;
 
-            pose_bone.global_pos = new_pos;
-            pose_bone.global_rot = new_rot;
+            pose_bone.global_pos.set(new_pos);
+            pose_bone.global_rot.set(new_rot);
 
             (new_pos, new_rot)
         } else {
             let pose_bone = &self.bones[bone as u8 as usize];
-            (pose_bone.global_pos, pose_bone.global_rot)
+            (pose_bone.global_pos.get(), pose_bone.global_rot.get())
         }
     }
 
@@ -179,16 +184,20 @@ impl Pose {
             .unwrap_or((self.root_pos, self.root_rot));
 
         let pose_bone = &mut self.bones[bone as u8 as usize];
-        pose_bone.global_pos = parent_pos + parent_rot * Vec3A::from(pose_bone.local_pos);
-        pose_bone.global_rot = new_rot;
+        pose_bone
+            .global_pos
+            .set(parent_pos + parent_rot * Vec3A::from(pose_bone.local_pos));
+        pose_bone.global_rot.set(new_rot);
         pose_bone.local_rot = parent_rot.inverse() * new_rot;
 
-        self.globalized = (self.globalized | bone) - bone.descendants();
+        let global = self.globalized.get_mut();
+        global.insert(bone);
+        global.remove_all(bone.descendants());
     }
 
     pub fn set_local_rot(&mut self, bone: Bone, new_rot: Quat) {
         self.bones[bone as u8 as usize].local_rot = new_rot;
-        self.globalized -= bone.affected();
+        self.globalized.get_mut().remove_all(bone.affected());
     }
 
     pub fn set_local_transform(&mut self, bone: Bone, new_pos: Vec3A, new_rot: Quat) {
@@ -196,14 +205,14 @@ impl Pose {
         pose_bone.local_pos = (new_pos, pose_bone.local_pos.w).into();
         pose_bone.local_rot = new_rot;
 
-        self.globalized -= bone.affected();
+        self.globalized.get_mut().remove_all(bone.affected());
     }
 
     pub fn set_root_transform(&mut self, new_pos: Vec3A, new_rot: Quat) {
         self.root_pos = new_pos;
         self.root_rot = new_rot;
 
-        self.globalized.clear();
+        self.globalized.get_mut().clear();
     }
 }
 
@@ -213,8 +222,8 @@ impl PoseBone {
             local_pos: Vec4::ZERO,
             local_rot: Quat::IDENTITY,
 
-            global_pos: Vec3A::ZERO,
-            global_rot: Quat::IDENTITY,
+            global_pos: Cell::new(Vec3A::ZERO),
+            global_rot: Cell::new(Quat::IDENTITY),
         }
     }
 }
