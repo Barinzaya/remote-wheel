@@ -3,6 +3,7 @@ mod bone;
 mod config;
 mod device;
 mod ik;
+mod math;
 
 use std::error::Error;
 use std::io::Cursor;

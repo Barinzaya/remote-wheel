@@ -130,9 +130,8 @@ impl Technique {
         }
     }
 
-    pub fn update(&mut self, dt: f64, tracking: &Pose) {
-        let _ = (dt, tracking);
-    }
+    pub fn set_rotation(&mut self, _: f32) {}
+    pub fn update(&mut self, _: f64, _: &Pose) {}
 }
 
 fn parse_position<'de, D: Deserializer<'de>>(de: D) -> Result<f32, D::Error> {

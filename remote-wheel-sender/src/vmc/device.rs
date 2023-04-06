@@ -55,9 +55,9 @@ impl Device {
         }
     }
 
-    pub fn update(&mut self, dt: f64, tracking: &Pose) {
+    pub fn update(&mut self, dt: f64, pose: &Pose) {
         match *self {
-            Device::Wheel(ref mut w) => w.update(dt, tracking),
+            Device::Wheel(ref mut w) => w.update(dt, pose),
         }
     }
 }

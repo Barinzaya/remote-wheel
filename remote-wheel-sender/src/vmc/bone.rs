@@ -265,6 +265,66 @@ impl Bone {
         EnumSet::from(*self)
     }
 
+    pub const fn mirror(&self) -> Bone {
+        match *self {
+            Self::Hips => Self::Hips,
+            Self::LeftUpperLeg => Self::RightUpperLeg,
+            Self::RightUpperLeg => Self::LeftUpperLeg,
+            Self::LeftLowerLeg => Self::RightLowerLeg,
+            Self::RightLowerLeg => Self::LeftLowerLeg,
+            Self::LeftFoot => Self::RightFoot,
+            Self::RightFoot => Self::LeftFoot,
+            Self::Spine => Self::Spine,
+            Self::Chest => Self::Chest,
+            Self::UpperChest => Self::UpperChest,
+            Self::Neck => Self::Neck,
+            Self::Head => Self::Head,
+            Self::LeftShoulder => Self::RightShoulder,
+            Self::RightShoulder => Self::LeftShoulder,
+            Self::LeftUpperArm => Self::RightUpperArm,
+            Self::RightUpperArm => Self::LeftUpperArm,
+            Self::LeftLowerArm => Self::RightLowerArm,
+            Self::RightLowerArm => Self::LeftLowerArm,
+            Self::LeftHand => Self::RightHand,
+            Self::RightHand => Self::LeftHand,
+            Self::LeftToes => Self::RightToes,
+            Self::RightToes => Self::LeftToes,
+            Self::LeftEye => Self::RightEye,
+            Self::RightEye => Self::LeftEye,
+            Self::Jaw => Self::Jaw,
+            Self::LeftThumbProximal => Self::RightThumbProximal,
+            Self::LeftThumbIntermediate => Self::RightThumbIntermediate,
+            Self::LeftThumbDistal => Self::RightThumbDistal,
+            Self::LeftIndexProximal => Self::RightIndexProximal,
+            Self::LeftIndexIntermediate => Self::RightIndexIntermediate,
+            Self::LeftIndexDistal => Self::RightIndexDistal,
+            Self::LeftMiddleProximal => Self::RightMiddleProximal,
+            Self::LeftMiddleIntermediate => Self::RightMiddleIntermediate,
+            Self::LeftMiddleDistal => Self::RightMiddleDistal,
+            Self::LeftRingProximal => Self::RightRingProximal,
+            Self::LeftRingIntermediate => Self::RightRingIntermediate,
+            Self::LeftRingDistal => Self::RightRingDistal,
+            Self::LeftLittleProximal => Self::RightLittleProximal,
+            Self::LeftLittleIntermediate => Self::RightLittleIntermediate,
+            Self::LeftLittleDistal => Self::RightLittleDistal,
+            Self::RightThumbProximal => Self::LeftThumbProximal,
+            Self::RightThumbIntermediate => Self::LeftThumbIntermediate,
+            Self::RightThumbDistal => Self::LeftThumbDistal,
+            Self::RightIndexProximal => Self::LeftIndexProximal,
+            Self::RightIndexIntermediate => Self::LeftIndexIntermediate,
+            Self::RightIndexDistal => Self::LeftIndexDistal,
+            Self::RightMiddleProximal => Self::LeftMiddleProximal,
+            Self::RightMiddleIntermediate => Self::LeftMiddleIntermediate,
+            Self::RightMiddleDistal => Self::LeftMiddleDistal,
+            Self::RightRingProximal => Self::LeftRingProximal,
+            Self::RightRingIntermediate => Self::LeftRingIntermediate,
+            Self::RightRingDistal => Self::LeftRingDistal,
+            Self::RightLittleProximal => Self::LeftLittleProximal,
+            Self::RightLittleIntermediate => Self::LeftLittleIntermediate,
+            Self::RightLittleDistal => Self::LeftLittleDistal,
+        }
+    }
+
     pub const fn name(&self) -> &'static str {
         match *self {
             Self::Hips => "Hips",
@@ -425,11 +485,11 @@ impl Limb {
                 AngularConstraint::None,
                 AngularConstraint::Euler(
                     EulerRot::YZX,
-                    (-1.05, 2.36), // Yaw; -60 to 135 deg
-                    (-1.31, 1.59), // Pitch; -75 to 90 deg
-                    (-0.79, 0.79), // Roll; -45 to 45 deg
+                    (-1.59, 2.62), // Yaw; -90 to 150 deg
+                    (-1.40, 1.59), // Pitch; -80 to 90 deg
+                    (-1.04, 1.04), // Roll; -60 to 60 deg
                 ),
-                AngularConstraint::Hinge(Vec3::Y, (0.0, 2.62)), // 0 to 150 deg
+                AngularConstraint::Hinge(Vec3::Y, (0.0, 2.88)), // 0 to 165 deg
                 AngularConstraint::None,
             ],
 
@@ -437,11 +497,12 @@ impl Limb {
                 AngularConstraint::None,
                 AngularConstraint::Euler(
                     EulerRot::YZX,
-                    (-2.36, 1.05), // Yaw; -135 to 60 deg
-                    (-1.31, 1.59), // Pitch; -75 to 90 deg
-                    (-0.79, 0.79), // Roll; -45 to 45 deg
+                    (-2.62, 1.59), // Yaw; -150 to 90 deg
+                    (-1.40, 1.59), // Pitch; -80 to 90 deg
+                    (-1.04, 1.04), // Roll; -60 to 60 deg
                 ),
-                AngularConstraint::Hinge(Vec3::NEG_Y, (0.0, 2.62)), // 0 to 150 deg
+                AngularConstraint::None,
+                AngularConstraint::Hinge(Vec3::NEG_Y, (0.0, 2.88)), // 0 to 165 deg
                 AngularConstraint::None,
             ],
         }

@@ -49,7 +49,7 @@ impl AvatarState {
             let _ = solve_tri(
                 &TriSettings {
                     elbow_axis: limb.elbow_axis(),
-                    max_iterations: 10,
+                    max_iterations: 20,
                     rot_tolerance: 0.001,
                 },
                 &mut TrackingChain {

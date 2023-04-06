@@ -90,6 +90,7 @@ impl Wheel {
     pub fn set_value(&mut self, value: f32) {
         self.angle = value;
         self.rot = self.base_rot * Quat::from_rotation_z(-value.to_radians());
+        self.technique.set_rotation(value);
     }
 
     pub fn trackers(&self, mut f: impl FnMut(DefaultAtom, Vec3A, Quat)) {
@@ -98,7 +99,7 @@ impl Wheel {
         }
     }
 
-    pub fn update(&mut self, dt: f64, tracking: &Pose) {
-        self.technique.update(dt, tracking)
+    pub fn update(&mut self, dt: f64, pose: &Pose) {
+        self.technique.update(dt, pose)
     }
 }
