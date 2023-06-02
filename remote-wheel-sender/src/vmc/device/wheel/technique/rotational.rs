@@ -13,18 +13,17 @@ use crate::vmc::{
 
 #[derive(Debug)]
 pub struct Technique {
-    cross_open: f32,
     cross_start: f32,
+    cross_grip: f32,
+    cross_out: f32,
     cross_retract: f32,
     cross_end: f32,
-    cross_close: f32,
 
-    turn_open: f32,
     turn_start: f32,
+    turn_grip: f32,
     turn_lift: f32,
     turn_out: f32,
     turn_end: f32,
-    turn_close: f32,
 
     rotation_base: f32,
     rotation_offset: f32,
@@ -33,11 +32,14 @@ pub struct Technique {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
 pub struct TechniqueConfig {
-    #[serde(default = "cross_open_default", deserialize_with = "parse_degrees")]
-    cross_open: f32,
-
     #[serde(default = "cross_start_default", deserialize_with = "parse_degrees")]
     cross_start: f32,
+
+    #[serde(default = "cross_grip_default", deserialize_with = "parse_degrees")]
+    cross_grip: f32,
+
+    #[serde(default = "cross_out_default")]
+    cross_out: f32,
 
     #[serde(default = "cross_retract_default")]
     cross_retract: f32,
@@ -45,14 +47,11 @@ pub struct TechniqueConfig {
     #[serde(default = "cross_end_default", deserialize_with = "parse_degrees")]
     cross_end: f32,
 
-    #[serde(default = "cross_close_default", deserialize_with = "parse_degrees")]
-    cross_close: f32,
-
-    #[serde(default = "turn_open_default", deserialize_with = "parse_degrees")]
-    turn_open: f32,
-
     #[serde(default = "turn_start_default", deserialize_with = "parse_degrees")]
     turn_start: f32,
+
+    #[serde(default = "turn_grip_default", deserialize_with = "parse_degrees")]
+    turn_grip: f32,
 
     #[serde(default = "turn_lift_default")]
     turn_lift: f32,
@@ -62,17 +61,18 @@ pub struct TechniqueConfig {
 
     #[serde(default = "turn_end_default", deserialize_with = "parse_degrees")]
     turn_end: f32,
-
-    #[serde(default = "turn_close_default", deserialize_with = "parse_degrees")]
-    turn_close: f32,
-}
-
-fn cross_open_default() -> f32 {
-    100.0f32.to_radians()
 }
 
 fn cross_start_default() -> f32 {
     110.0f32.to_radians()
+}
+
+fn cross_grip_default() -> f32 {
+    5.0f32.to_radians()
+}
+
+fn cross_out_default() -> f32 {
+    0.25
 }
 
 fn cross_retract_default() -> f32 {
@@ -83,16 +83,12 @@ fn cross_end_default() -> f32 {
     250.0f32.to_radians()
 }
 
-fn cross_close_default() -> f32 {
-    260.0f32.to_radians()
-}
-
-fn turn_open_default() -> f32 {
-    260.0f32.to_radians()
-}
-
 fn turn_start_default() -> f32 {
     270.0f32.to_radians()
+}
+
+fn turn_grip_default() -> f32 {
+    5.0f32.to_radians()
 }
 
 fn turn_lift_default() -> f32 {
@@ -100,15 +96,11 @@ fn turn_lift_default() -> f32 {
 }
 
 fn turn_out_default() -> f32 {
-    0.5
+    0.25
 }
 
 fn turn_end_default() -> f32 {
     290.0f32.to_radians()
-}
-
-fn turn_close_default() -> f32 {
-    300.0f32.to_radians()
 }
 
 impl Technique {
@@ -246,6 +238,14 @@ impl Technique {
                 local_pos.z = -length * lift;
             }
 
+            if retract > 0.0 {
+                let out = retract
+                    .inv_lerp_checked(0.0, 0.25)
+                    .unwrap_or_else(|| retract.inv_lerp(1.0, 0.25))
+                    .ease(-1.5);
+                local_pos *= 1.0 + self.cross_out * out;
+            }
+
             let mut global_pos = wheel.pos + wheel.base_rot * local_pos;
             let mut global_rot = wheel.base_rot
                 * Quat::from_euler(
@@ -282,7 +282,7 @@ impl Technique {
     pub fn set_rotation(&mut self, angle: f32) {
         let mut base = self.rotation_base;
         let mut offset = angle.to_radians() - base;
-        let wrap = f32::max(self.cross_close, self.turn_close);
+        let wrap = f32::max(self.cross_end + self.cross_grip, self.turn_end + self.turn_grip);
 
         while offset < -wrap {
             base -= TAU;
@@ -304,17 +304,17 @@ impl Technique {
         match offset.partial_cmp(&0.0) {
             Some(Ordering::Greater) => {
                 // Hand opening to cross
-                if let Some(t) = offset.inv_lerp_checked(self.cross_open, self.cross_start) {
+                if let Some(t) = offset.inv_lerp_checked(self.cross_start - self.cross_grip, self.cross_start + self.cross_grip) {
                     return 1.0 - t.ease(-2.0);
                 }
 
                 // Hand crossing
-                if let Some(t) = offset.inv_lerp_checked(self.cross_start, self.cross_end) {
+                if let Some(t) = offset.inv_lerp_checked(self.cross_start + self.cross_grip, self.cross_end - self.cross_grip) {
                     return 0.5 * t.ping_pong(0.5).ease(-3.0);
                 }
 
                 // Hand closing after cross
-                if let Some(t) = offset.inv_lerp_checked(self.cross_end, self.cross_close) {
+                if let Some(t) = offset.inv_lerp_checked(self.cross_end - self.cross_grip, self.cross_end + self.cross_grip) {
                     return t.ease(-2.0);
                 }
             }
@@ -323,17 +323,17 @@ impl Technique {
                 let pos_offset = -offset;
 
                 // Hand opening to turn
-                if let Some(t) = pos_offset.inv_lerp_checked(self.turn_open, self.turn_start) {
+                if let Some(t) = pos_offset.inv_lerp_checked(self.turn_start - self.turn_grip, self.turn_start + self.turn_grip) {
                     return 1.0 - t.ease(-2.0);
                 }
 
                 // Hand turning
-                if let Some(t) = pos_offset.inv_lerp_checked(self.turn_start, self.turn_end) {
+                if let Some(t) = pos_offset.inv_lerp_checked(self.turn_start + self.turn_grip, self.turn_end - self.turn_grip) {
                     return 0.5 * t.ping_pong(0.5).ease(-3.0);
                 }
 
                 // Hand closing after turn
-                if let Some(t) = pos_offset.inv_lerp_checked(self.turn_end, self.turn_close) {
+                if let Some(t) = pos_offset.inv_lerp_checked(self.turn_end - self.turn_grip, self.turn_end + self.turn_grip) {
                     return t.ease(-2.0);
                 }
             }
@@ -383,56 +383,31 @@ impl TryFrom<TechniqueConfig> for Technique {
     type Error = AnyError;
 
     fn try_from(config: TechniqueConfig) -> AnyResult<Self> {
-        ensure!(config.cross_retract >= 0.0, "cross-retract must be greater than 0!");
+        ensure!(config.cross_grip >= 0.0, "cross-grip must be at least 0 degrees!");
+        ensure!(config.cross_retract >= 0.0, "cross-retract must be at least than 0!");
+        ensure!(config.turn_grip >= 0.0, "turn-grip must be at least 0 degrees!");
         ensure!(config.turn_lift >= 0.0, "turn-lift must be greater than 0!");
 
-        ensure!(
-            config.cross_open >= 0.0,
-            "cross-open must be greater than 0 degrees!"
-        );
-        ensure!(
-            config.cross_start >= config.cross_open,
-            "cross-start must be greater than cross-open!"
-        );
-        ensure!(
-            config.cross_end >= config.cross_start,
-            "cross-end must be greater than cross-start!"
-        );
-        ensure!(
-            config.cross_close >= config.cross_end,
-            "cross-close must be greater than cross-end!"
-        );
-        ensure!(
-            config.cross_close < TAU,
-            "cross-close must be less than 360 degrees!"
-        );
+        ensure!(config.cross_start > 0.0, "cross-start must be greater than 0 degrees!");
+        ensure!(config.cross_end >= config.cross_start, "cross-end must be greater than cross-start!");
+        ensure!(config.cross_end < TAU, "cross-close must be less than 360 degrees!");
 
-        ensure!(
-            config.turn_start >= 0.0,
-            "turn-start must be greater than 0 degrees!"
-        );
-        ensure!(
-            config.turn_end >= config.turn_start,
-            "turn-end must be greater than turn-start!"
-        );
-        ensure!(
-            config.turn_end < TAU,
-            "turn-end must be less than 360 degrees!"
-        );
+        ensure!(config.turn_start > 0.0, "turn-start must be greater than 0 degrees!");
+        ensure!(config.turn_end >= config.turn_start, "turn-end must be greater than turn-start!");
+        ensure!(config.turn_end < TAU, "turn-end must be less than 360 degrees!");
 
         Ok(Technique {
-            cross_open: config.cross_open,
             cross_start: config.cross_start,
+            cross_grip: config.cross_grip,
+            cross_out: config.cross_out,
             cross_retract: config.cross_retract,
             cross_end: config.cross_end,
-            cross_close: config.cross_close,
 
-            turn_open: config.turn_open,
             turn_start: config.turn_start,
+            turn_grip: config.turn_grip,
             turn_lift: config.turn_lift,
             turn_out: config.turn_out,
             turn_end: config.turn_end,
-            turn_close: config.turn_close,
 
             rotation_base: 0.0,
             rotation_offset: 0.0,
@@ -443,18 +418,17 @@ impl TryFrom<TechniqueConfig> for Technique {
 impl Default for TechniqueConfig {
     fn default() -> Self {
         TechniqueConfig {
-            cross_open: cross_open_default(),
             cross_start: cross_start_default(),
+            cross_grip: cross_grip_default(),
+            cross_out: cross_out_default(),
             cross_retract: cross_retract_default(),
             cross_end: cross_end_default(),
-            cross_close: cross_close_default(),
 
-            turn_open: turn_open_default(),
             turn_start: turn_start_default(),
+            turn_grip: turn_grip_default(),
             turn_lift: turn_lift_default(),
             turn_out: turn_out_default(),
             turn_end: turn_end_default(),
-            turn_close: turn_close_default(),
         }
     }
 }
