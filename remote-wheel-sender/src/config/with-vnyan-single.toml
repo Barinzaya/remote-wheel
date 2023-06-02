@@ -20,6 +20,10 @@
 # remove values that you may want to add back in later. You may remove any comment without affecting
 # the configuration.
 
+[osc]
+    enabled = true
+    output.address = "127.0.0.1:28569" # CHANGEME: If you've changed the OSC receiver port in VNyan's Settings/Misc, update it here as well!
+
 [vmc]
 	enabled = true
 	input.address = "127.0.0.1:3332" # NOTE: VSeeFace should be configured to send its VMC output here!
@@ -42,7 +46,6 @@
 	controller.axis = 1
 
 [axis.wheel.output.vmc.on-update]
-	blendshape.wheel = [0, 100]
 	device.wheel = [-450, 450]
 
 
@@ -53,8 +56,11 @@
 	controller.name = "Controller Name"
 	controller.button = 2
 
-[button.shift-up.output.vmc.on-update]
-	blendshape.paddleUp = [0, 100]
+[button.shift-up.output.osc.on-press]
+	"/VNyan/Param/Float" = [{string = "UpPaddleRotation"}, {float = 5}]
+
+[button.shift-up.output.osc.on-release]
+	"/VNyan/Param/Float" = [{string = "UpPaddleRotation"}, {float = 0}]
 
 
 [[button.shift-down.input]]
@@ -64,8 +70,11 @@
 	controller.name = "Controller Name"
 	controller.button = 1
 
-[button.shift-down.output.vmc.on-update]
-	blendshape.paddleDown = [0, 100]
+[button.shift-down.output.osc.on-press]
+	"/VNyan/Param/Float" = [{string = "DownPaddleRotation"}, {float = -5}]
+
+[button.shift-down.output.osc.on-release]
+	"/VNyan/Param/Float" = [{string = "DownPaddleRotation"}, {float = 0}]
 
 
 [[axis.gas.input]]
@@ -75,8 +84,8 @@
 	controller.name = "Controller Name"
 	controller.axis = 3
 
-[axis.gas.output.vmc.on-update]
-	blendshape.gas = [0, 100]
+[axis.gas.output.osc.on-update]
+	"/VNyan/Param/Float" = [{string = "GasRotation"}, {input = [0, 20]}]
 
 
 [[axis.brake.input]]
@@ -86,8 +95,8 @@
 	controller.name = "Controller Name"
 	controller.axis = 2
 
-[axis.brake.output.vmc.on-update]
-	blendshape.brake = [0, 100]
+[axis.brake.output.osc.on-update]
+	"/VNyan/Param/Float" = [{string = "BrakeRotation"}, {input = [0, 20]}]
 
 
 [[axis.clutch.input]]
@@ -97,5 +106,5 @@
 	controller.name = "Controller Name"
 	controller.axis = 4
 
-[axis.clutch.output.vmc.on-update]
-	blendshape.clutch = [0, 100]
+[axis.clutch.output.osc.on-update]
+	"/VNyan/Param/Float" = [{string = "ClutchRotation"}, {input = [0, 20]}]

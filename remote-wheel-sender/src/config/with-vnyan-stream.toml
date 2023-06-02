@@ -24,7 +24,7 @@
 [osc]
 	enabled = true
 	input.address = "0.0.0.0:19794"
-	output.address = "127.0.0.1:19795"
+    output.address = "127.0.0.1:28569" # CHANGEME: If you've changed the OSC receiver port in VNyan's Settings/Misc, update it here as well!
 
 [vmc]
 	enabled = true
@@ -45,43 +45,48 @@
 	osc.range = [-450, 450]
 
 [axis.wheel.output.vmc.on-update]
-	blendshape.wheel = [0, 100]
 	device.wheel = [-450, 450]
 
 
 [[button.shift-up.input]]
 	osc.address = "/wheel/shift-up"
 
-[button.shift-up.output.vmc.on-update]
-	blendshape.paddleUp = [0, 100]
+[button.shift-up.output.osc.on-press]
+	"/VNyan/Param/Float" = [{string = "UpPaddleRotation"}, {float = 5}]
+
+[button.shift-up.output.osc.on-release]
+	"/VNyan/Param/Float" = [{string = "UpPaddleRotation"}, {float = 0}]
 
 
 [[button.shift-down.input]]
 	osc.address = "/wheel/shift-down"
 
-[button.shift-down.output.vmc.on-update]
-	blendshape.paddleDown = [0, 100]
+[button.shift-down.output.osc.on-press]
+	"/VNyan/Param/Float" = [{string = "DownPaddleRotation"}, {float = -5}]
+
+[button.shift-down.output.osc.on-release]
+	"/VNyan/Param/Float" = [{string = "DownPaddleRotation"}, {float = 0}]
 
 
 [[axis.gas.input]]
 	osc.address = "/pedals/gas"
 	osc.range = [0, 1]
 
-[axis.gas.output.vmc.on-update]
-	blendshape.gas = [0, 100]
+[axis.gas.output.osc.on-update]
+	"/VNyan/Param/Float" = [{string = "GasRotation"}, {input = [0, 20]}]
 
 
 [[axis.brake.input]]
 	osc.address = "/pedals/brake"
 	osc.range = [0, 1]
 
-[axis.brake.output.vmc.on-update]
-	blendshape.brake = [0, 100]
+[axis.brake.output.osc.on-update]
+	"/VNyan/Param/Float" = [{string = "BrakeRotation"}, {input = [0, 20]}]
 
 
 [[axis.clutch.input]]
 	osc.address = "/pedals/clutch"
 	osc.range = [0, 1]
 
-[axis.clutch.output.vmc.on-update]
-	blendshape.clutch = [0, 100]
+[axis.clutch.output.osc.on-update]
+	"/VNyan/Param/Float" = [{string = "ClutchRotation"}, {input = [0, 20]}]
