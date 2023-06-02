@@ -484,10 +484,10 @@ impl Limb {
             Limb::LeftHand => &[
                 AngularConstraint::None,
                 AngularConstraint::Euler(
-                    EulerRot::YZX,
+                    EulerRot::YXZ,
                     (-1.59, 2.62), // Yaw; -90 to 150 deg
-                    (-1.40, 1.59), // Pitch; -80 to 90 deg
                     (-1.04, 1.04), // Roll; -60 to 60 deg
+                    (-1.40, 1.59), // Pitch; -80 to 90 deg
                 ),
                 AngularConstraint::Hinge(Vec3::Y, (0.0, 2.88)), // 0 to 165 deg
                 AngularConstraint::None,
@@ -496,12 +496,11 @@ impl Limb {
             Limb::RightHand => &[
                 AngularConstraint::None,
                 AngularConstraint::Euler(
-                    EulerRot::YZX,
+                    EulerRot::YXZ,
                     (-2.62, 1.59), // Yaw; -150 to 90 deg
-                    (-1.40, 1.59), // Pitch; -80 to 90 deg
                     (-1.04, 1.04), // Roll; -60 to 60 deg
+                    (-1.40, 1.59), // Pitch; -80 to 90 deg
                 ),
-                AngularConstraint::None,
                 AngularConstraint::Hinge(Vec3::NEG_Y, (0.0, 2.88)), // 0 to 165 deg
                 AngularConstraint::None,
             ],
