@@ -220,7 +220,8 @@ fn run_sync(
                     let controller = controllers.get(&name).cloned();
 
                     log::info!(
-                        "Joystick detected: {name} (configured axes: {}, buttons: {})",
+                        "Joystick detected: {} (configured axes: {}, buttons: {})",
+                        name.escape_default(),
                         controller.as_ref().map(|m| m.axes.len()).unwrap_or(0),
                         controller.as_ref().map(|m| m.buttons.len()).unwrap_or(0)
                     );
@@ -229,7 +230,7 @@ fn run_sync(
 
                 SdlEvent::JoyDeviceRemoved { which, .. } => {
                     if let Some((_, name, _)) = connected_map.remove(&which) {
-                        log::info!("Joystick removed: {}", name);
+                        log::info!("Joystick removed: {}", name.escape_default());
                     }
                 }
 
