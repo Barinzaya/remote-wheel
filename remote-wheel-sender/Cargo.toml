@@ -2,7 +2,7 @@
 name = "remote-wheel-sender"
 description = "Monitors one or more joysticks and sends them to another software to allow for integration."
 authors = ["Barinzaya <barinzaya@gmail.com>"]
-version = "0.3.1-a1"
+version = "0.3.3-a1"
 edition = "2021"
 
 [dependencies]
