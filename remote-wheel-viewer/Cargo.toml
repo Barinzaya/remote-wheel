@@ -7,12 +7,12 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
-eframe = { version = "0.21", default-features = false, features = ["glow"] }
+eframe = { version = "0.22", default-features = false, features = ["glow"] }
 futures = "0.3"
 image = { version = "0.24", default-features = false, features = ["png"] }
 rfd = "0.11"
-rosc = { git = "https://github.com/barinzaya/rosc", branch = "encoder-improvements" }
+rosc = "0.10"
 serde = { version = "1", features = ["derive", "rc"] }
-serde_with = "2"
+serde_with = "3"
 smol = "1"
 toml = { version = "0.7", default-features = false, features = ["parse"] }
