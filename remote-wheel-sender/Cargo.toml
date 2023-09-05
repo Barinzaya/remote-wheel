@@ -13,13 +13,13 @@ ctrlc = "3"
 dialoguer = { version = "0.10", features = [], default-features = false }
 enumset = { version = "1", optional = true }
 futures = "0.3"
-glam = { version = "0.23", features = ["debug-glam-assert", "fast-math"], optional = true }
-hashbrown = { version = "0.13", features = ["serde"] }
+glam = { version = "0.24", features = ["debug-glam-assert", "fast-math"], optional = true }
+hashbrown = { version = "0.14", features = ["serde"] }
 linear-map = { version = "1", features = ["serde_impl"], optional = true }
 log = { version = "0.4", features = ["release_max_level_info"] }
-num_enum = { version = "0.6", optional = true }
+num_enum = { version = "0.7", optional = true }
 phf = { version = "0.11", features = ["macros"], optional = true }
-rosc = { git = "https://github.com/barinzaya/rosc", branch = "encoder-improvements", optional = true }
+rosc = { version = "0.10", optional = true }
 sdl2 = { version = "0.35", features = ["bundled", "static-link"] }
 serde = { version = "1", features = ["derive", "rc"] }
 simplelog = "0.12"
